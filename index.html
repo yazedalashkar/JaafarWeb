@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="صالة جعفر">
   <meta name="application-name" content="صالة جعفر">
-  <meta name="description" content="نظام إدارة أجهزة وجلسات البلايستيشن، دفتر الديون الذكي، بوفيه ومقصف ومخزون الصالة، والصندوق المالي">
+  <meta name="description" content="نظام إدارة أجهزة وجلسات البلايستيشن، دفتر الديون الذكي، بوفيه ومخزون الصالة، والصندوق المالي">
 
   <!-- Web App Manifest for PWABuilder & Browsers -->
   <link rel="manifest" href="manifest.json">
@@ -998,7 +998,7 @@
           </div>
 
           <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-            <div style="font-size:0.8rem; color:var(--text-muted);">💸 المصاريف والنثريات اليومية:</div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">💸 المصاريف العامة اليومية:</div>
             <div id="dailyExpensesTotal" style="font-size:1.3rem; font-weight:800; color:var(--danger);">0 ل.س</div>
           </div>
         </div>
@@ -1066,7 +1066,7 @@
       <div class="content-card">
         <h3 class="text-gold" style="margin-bottom: 8px;">💾 النسخ الاحتياطي ونقل البيانات</h3>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-          احفظ نسخة احتياطية من كل سجلاتك وأجهزتك والديون والمقصف بملف واحد للرجوع إليها بأي وقت.
+          احفظ نسخة احتياطية من كل سجلاتك وأجهزتك والديون والبوفيه بملف واحد للرجوع إليها بأي وقت.
         </p>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
           <button class="btn btn-secondary" onclick="exportBackupData()">
@@ -1080,11 +1080,39 @@
         </div>
       </div>
 
-      <div class="content-card">
-        <h3 class="text-gold" style="margin-bottom: 8px;">ℹ️ عن النظام</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-          تطبيق صالة جعفر المطور (V2.0) - نظام إدارة أوفلاين متكامل مصمم خصيصاً لتلبية متطلبات صالات البلايستيشن في سوريا.
+      <!-- Glowing Designer Box -->
+      <div class="content-card" style="background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(18,18,22,0.95)); border: 1.5px solid #d4af37; box-shadow: 0 0 25px rgba(212, 175, 55, 0.4), inset 0 0 15px rgba(212, 175, 55, 0.12); border-radius: var(--radius-lg); text-align: center; padding: 20px 16px; margin-bottom: 20px;">
+        <div style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 6px;">
+          ✨ تم التصميم والتطوير بواسطة 
+          <a href="https://www.instagram.com/lia.yazed" target="_blank" rel="noopener noreferrer" style="color: #fcd34d; font-weight: 900; text-decoration: none; border-bottom: 2px solid #fcd34d; padding-bottom: 2px; transition: all 0.2s ease;">
+            Yazed Al-Ashkar ↗
+          </a>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
+          Front-End Web Developer & UI/UX Designer
         </p>
+      </div>
+
+      <!-- About Section -->
+      <div class="content-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+          <h3 class="text-gold" style="margin: 0; font-size: 1.1rem;">ℹ️ عن النظام</h3>
+          <span class="badge badge-gold" style="font-weight: 900; font-size: 0.8rem; padding: 4px 10px; background: var(--gold-gradient); color: #0d0f14;">الإصدار v7</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-main); line-height: 1.8; margin-bottom: 14px;">
+          تطبيق صالة جعفر المتكامل لإدارة نظام الصالة، للتواصل أو الإبلاغ عن مشكلة فنية الاتصال أو مراسلة واتساب على الرقم: 
+          <a href="https://wa.me/963994647182" target="_blank" rel="noopener noreferrer" style="color: var(--text-gold); font-weight: 800; text-decoration: none; direction: ltr; display: inline-block;">
+            +963994647182
+          </a>
+        </p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;">
+          <a href="https://wa.me/963994647182" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; color: #22c55e; border-color: rgba(34,197,94,0.4); text-decoration: none; font-weight: 700;">
+            💬 مراسلة واتساب (+963994647182)
+          </a>
+          <a href="tel:+963994647182" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-gold); border-color: rgba(212,175,55,0.4); text-decoration: none; font-weight: 700;">
+            📞 اتصال هاتف (+963994647182)
+          </a>
+        </div>
         <div class="mt-4" style="border-top: 1px solid var(--border-color); padding-top: 12px;">
           <button class="btn btn-danger btn-sm" onclick="resetAllDataConfirm()">⚠️ إعادة ضبط المصنع ومسح كافة السجلات</button>
         </div>
@@ -1295,7 +1323,7 @@
               <span id="billGameAmount" style="font-weight:700;">0 ل.س</span>
             </div>
             <div id="billBuffetRow" style="display:flex; justify-content:space-between; margin-bottom:4px;">
-              <span>طلبات الأركيلة والمقصف:</span>
+              <span>طلبات الأركيلة والبوفيه:</span>
               <span id="billBuffetAmount" style="font-weight:700; color:var(--info);">0 ل.س</span>
             </div>
             <div id="billOrdersList" style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;"></div>
@@ -1374,14 +1402,14 @@
 
         <!-- 3. Add from Canteen Inventory -->
         <div style="border-top:1px solid var(--border-color); padding-top:10px;">
-          <div style="font-size:0.85rem; font-weight:700; margin-bottom:8px; color:var(--text-main);">➕ إضافة صنف من قائمة المقصف:</div>
+          <div style="font-size:0.85rem; font-weight:700; margin-bottom:8px; color:var(--text-main);">➕ إضافة صنف من قائمة البوفيه:</div>
           <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px;">
             <select id="orderProductSelect" class="input-field" onchange="updateOrderPricePreview()"></select>
             <input type="number" id="orderQuantityInput" class="input-field" value="1" min="1" max="50" oninput="updateOrderPricePreview()" placeholder="الكمية">
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
             <div id="orderPricePreview" style="font-weight:700; color:var(--text-gold); font-size:0.9rem;"></div>
-            <button type="button" class="btn btn-gold btn-sm" onclick="confirmAddOrderToSession()">+ إضافة من المقصف</button>
+            <button type="button" class="btn btn-gold btn-sm" onclick="confirmAddOrderToSession()">+ إضافة من البوفيه</button>
           </div>
         </div>
 
@@ -1541,7 +1569,7 @@
   <div id="expenseModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>تسجيل مصروف يومي أو نثريات</h3>
+        <h3>تسجيل مصروف يومي / مصاريف عامة</h3>
         <button class="btn-icon btn-sm" onclick="closeModal('expenseModal')">✕</button>
       </div>
       <div class="modal-body">
