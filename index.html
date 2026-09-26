@@ -798,6 +798,115 @@
       }
     }
 
+  
+    
+    /* Keyboard Keys Styling for Laptop Shortcuts */
+    kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      padding: 3px 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-gold);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-bottom: 2px solid var(--gold-primary);
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+      margin: 0 2px;
+      line-height: 1.2;
+    }
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.88rem;
+    }
+    .shortcut-row:last-child {
+      border-bottom: none;
+    }
+    .shortcut-desc {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .shortcut-keys {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    /* --- DESKTOP ENHANCEMENTS & ANTI-STRETCH STYLES --- */
+    .search-bar {
+      max-width: 480px;
+      margin-bottom: 18px;
+    }
+
+    #debtorsContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 14px;
+    }
+
+    .devices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 420px));
+      gap: 18px;
+      justify-content: start;
+    }
+
+    @media (max-width: 767px) {
+      .devices-grid {
+        grid-template-columns: 1fr;
+      }
+      #debtorsContainer {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Floating Dock on Tablets & Desktop */
+    @media (min-width: 768px) {
+      body {
+        padding-bottom: 110px;
+      }
+      .bottom-nav {
+        max-width: 620px;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%);
+        bottom: 18px;
+        border-radius: 9999px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45), 0 0 25px rgba(212, 175, 55, 0.2);
+        padding: 8px 20px;
+      }
+      .nav-item {
+        padding: 8px 18px;
+        font-size: 0.84rem;
+        border-radius: var(--radius-md);
+      }
+      .app-header {
+        padding: 14px 28px;
+      }
+      .container {
+        padding: 24px;
+      }
+    }
+
+    /* 2-Column Balanced Layout for Settings on Desktop */
+    @media (min-width: 960px) {
+      .settings-desktop-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 20px;
+        align-items: start;
+      }
+    }
+
   </style>
 </head>
 <body data-theme="dark">
@@ -1031,6 +1140,27 @@
         </div>
       </div>
 
+      <div class="settings-desktop-grid">
+        <div class="settings-col-main">
+      <!-- Laptop Keyboard Shortcuts Catalog Card -->
+      <div class="content-card" style="border-color: rgba(212,175,55,0.45); background: linear-gradient(135deg, rgba(212,175,55,0.1), var(--bg-card));">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+              <h3 class="text-gold" style="margin:0; font-size:1.1rem;">⌨️ كتالوج اختصارات كيبورد اللابتوب</h3>
+              <span class="badge badge-gold" style="font-size:0.75rem;">سريع ومباشر</span>
+            </div>
+            <p style="font-size:0.84rem; color:var(--text-muted); margin:0;">
+              تحكّم في الصالة والأجهزة والمبيعات والصندوق بسرعة عبر مفاتيح الكيبورد دون الحاجة للماوس.
+            </p>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="openShortcutsCatalogModal()" style="font-weight:800; padding:8px 16px;">
+            📖 فتح كتالوج الاختصارات
+          </button>
+        </div>
+      </div>
+
+
       <div class="content-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <div>
@@ -1080,6 +1210,8 @@
         </div>
       </div>
 
+        </div>
+        <div class="settings-col-side">
       <!-- Glowing Designer Box -->
       <div class="content-card" style="background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(18,18,22,0.95)); border: 1.5px solid #d4af37; box-shadow: 0 0 25px rgba(212, 175, 55, 0.4), inset 0 0 15px rgba(212, 175, 55, 0.12); border-radius: var(--radius-lg); text-align: center; padding: 20px 16px; margin-bottom: 20px;">
         <div style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 6px;">
@@ -1115,6 +1247,8 @@
         </div>
         <div class="mt-4" style="border-top: 1px solid var(--border-color); padding-top: 12px;">
           <button class="btn btn-danger btn-sm" onclick="resetAllDataConfirm()">⚠️ إعادة ضبط المصنع ومسح كافة السجلات</button>
+        </div>
+      </div>
         </div>
       </div>
     </div>
@@ -1510,6 +1644,7 @@
           <label class="form-label">طريقة المحاسبة:</label>
           <select id="quickSalePaymentType" class="input-field" onchange="onQuickSaleTypeChange()">
             <option value="cash">💵 بيع نقدي كاش (يدخل بالصندوق فوراً)</option>
+            <option value="session">🎮 إضافة إلى جلسة بلايستيشن جارية</option>
             <option value="debt">📝 تسجيل دين على زبون</option>
           </select>
         </div>
@@ -1517,6 +1652,11 @@
         <div id="quickSaleDebtorSelectGroup" class="form-group" style="display:none;">
           <label class="form-label">اختر الزبون لتقييد الدين عليه:</label>
           <select id="quickSaleDebtorSelect" class="input-field"></select>
+        </div>
+
+        <div id="quickSaleSessionSelectGroup" class="form-group" style="display:none;">
+          <label class="form-label">اختر جلسة البلايستيشن الجارية:</label>
+          <select id="quickSaleSessionSelect" class="input-field"></select>
         </div>
 
         <div class="mt-4" style="display:flex; gap:10px;">
@@ -4198,6 +4338,87 @@
       window.print();
     }
 
+    
+    function openShortcutsCatalogModal() {
+      openModal('shortcutsCatalogModal');
+    }
+
+    // Global Laptop Keyboard Shortcuts Engine
+    window.addEventListener('keydown', (e) => {
+      // 1. Esc key closes any open modal immediately
+      if (e.key === 'Escape') {
+        const activeModals = document.querySelectorAll('.modal-overlay.active');
+        if (activeModals.length > 0) {
+          activeModals.forEach(m => m.classList.remove('active'));
+          return;
+        }
+      }
+
+      // Check if user is typing inside an input/textarea/select
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+      const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target && e.target.isContentEditable);
+
+      // Stop Alarm Sound with Spacebar (only when not typing in text field)
+      if (e.code === 'Space' && !isInput) {
+        const ringingBanner = document.getElementById('ringingBanner');
+        if (ringingBanner && ringingBanner.classList.contains('active')) {
+          e.preventDefault();
+          stopAlarmSound();
+          showToast('تم إيقاف صوت الرنين 🔕');
+          return;
+        }
+      }
+
+      // Ignore single key navigation/action shortcuts while typing
+      if (isInput) return;
+
+      const key = e.key.toLowerCase();
+
+      // Navigation Shortcuts (1-5 or F1-F5)
+      const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+      if (key === '1' || e.key === 'F1') {
+        e.preventDefault();
+        if (navItems[0]) switchTab('tabSessions', navItems[0]);
+      } else if (key === '2' || e.key === 'F2') {
+        e.preventDefault();
+        if (navItems[1]) switchTab('tabBuffet', navItems[1]);
+      } else if (key === '3' || e.key === 'F3') {
+        e.preventDefault();
+        if (navItems[2]) switchTab('tabDebts', navItems[2]);
+      } else if (key === '4' || e.key === 'F4') {
+        e.preventDefault();
+        if (navItems[3]) switchTab('tabDaily', navItems[3]);
+      } else if (key === '5' || e.key === 'F5') {
+        e.preventDefault();
+        if (navItems[4]) switchTab('tabSettings', navItems[4]);
+      }
+      // Action Shortcuts
+      else if (key === 'n') {
+        e.preventDefault();
+        const emptyDev = devices.find(d => !d.session);
+        if (emptyDev) {
+          openStartSessionModal(emptyDev.id);
+        } else if (devices.length > 0) {
+          openStartSessionModal(devices[0].id);
+        }
+      } else if (key === 'b') {
+        e.preventDefault();
+        openQuickBuffetSaleModal();
+      } else if (key === 'd') {
+        e.preventDefault();
+        openAddDebtorModal();
+      } else if (key === 'e') {
+        e.preventDefault();
+        openExpenseModal();
+      } else if (key === 'p' || (e.ctrlKey && key === 'p')) {
+        e.preventDefault();
+        openInventoryReportModal();
+      } else if (key === '?' || key === 'k' || e.key === 'F12') {
+        e.preventDefault();
+        openShortcutsCatalogModal();
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', initApp);
 
     // Register Service Worker for PWABuilder & Offline PWA
@@ -4211,5 +4432,108 @@
 
 
   </script>
+  <!-- Keyboard Shortcuts Catalog Modal -->
+  <div id="shortcutsCatalogModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.4rem;">⌨️</span>
+          <div>
+            <h3 style="margin:0; font-size:1.15rem;">كتالوج اختصارات كيبورد اللابتوب</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin:0;">تحكم سريع واحترافي بنظام صالة جعفر عبر لوحة المفاتيح</p>
+          </div>
+        </div>
+        <button class="btn-icon btn-sm" onclick="closeModal('shortcutsCatalogModal')">✕</button>
+      </div>
+
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        
+        <!-- Group 1: Navigation -->
+        <div style="margin-bottom: 18px;">
+          <div style="font-size:0.85rem; font-weight:800; color:var(--text-gold); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <span>🚀</span> التنقل السريع بين أقسام الصالة
+          </div>
+          <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden;">
+            <div class="shortcut-row">
+              <span class="shortcut-desc">الانتقال لشاشة الجلسات والأجهزة</span>
+              <div class="shortcut-keys"><kbd>1</kbd> أو <kbd>F1</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">الانتقال لشاشة مبيعات أخرى والبوفيه</span>
+              <div class="shortcut-keys"><kbd>2</kbd> أو <kbd>F2</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">الانتقال لدفتر الديون الذكي</span>
+              <div class="shortcut-keys"><kbd>3</kbd> أو <kbd>F3</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">الانتقال للصندوق المحاسبي والمالية</span>
+              <div class="shortcut-keys"><kbd>4</kbd> أو <kbd>F4</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">الانتقال لشاشة الإعدادات والنظام</span>
+              <div class="shortcut-keys"><kbd>5</kbd> أو <kbd>F5</kbd></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 2: Operational Quick Actions -->
+        <div style="margin-bottom: 18px;">
+          <div style="font-size:0.85rem; font-weight:800; color:var(--text-gold); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <span>⚡</span> العمليات اليومية وإدارة المؤقتات
+          </div>
+          <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden;">
+            <div class="shortcut-row">
+              <span class="shortcut-desc">إيقاف صوت الرنين فوراً عند انتهاء وقت أي جهاز</span>
+              <div class="shortcut-keys"><kbd>Space</kbd> مسافة</div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">بدء جلسة لعب جديدة على أول جهاز متاح</span>
+              <div class="shortcut-keys"><kbd>N</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">فتح نافذة البيع السريع (أركيلة / بوفيه / فحم)</span>
+              <div class="shortcut-keys"><kbd>B</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">إضافة زبون / دين جديد في دفتر الديون</span>
+              <div class="shortcut-keys"><kbd>D</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">تسجيل مصروف يومي عام بالصندوق</span>
+              <div class="shortcut-keys"><kbd>E</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">عرض وطباعة تقرير الجرد الرسمي (PDF)</span>
+              <div class="shortcut-keys"><kbd>P</kbd> أو <kbd>Ctrl+P</kbd></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: Window Controls -->
+        <div>
+          <div style="font-size:0.85rem; font-weight:800; color:var(--text-gold); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <span>🪟</span> النوافذ والمساعدة
+          </div>
+          <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden;">
+            <div class="shortcut-row">
+              <span class="shortcut-desc">إغلاق أي نافذة منبثقة مفتوحة حالياً</span>
+              <div class="shortcut-keys"><kbd>Esc</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">فتح كتالوج ودليل الاختصارات هذا</span>
+              <div class="shortcut-keys"><kbd>?</kbd> أو <kbd>K</kbd></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4" style="text-align:center;">
+          <button class="btn btn-gold" onclick="closeModal('shortcutsCatalogModal')">فهمت الاختصارات ✔️</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
