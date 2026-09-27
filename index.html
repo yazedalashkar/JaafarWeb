@@ -1358,8 +1358,8 @@
           <button class="btn btn-secondary btn-sm" onclick="openInventoryReportModal()" title="تصدير تقرير الجرد والمخزون بصيغة PDF">
             📄 تقرير الجرد (PDF)
           </button>
-          <button class="btn btn-danger btn-sm" onclick="resetInventoryPrompt()" title="تصفير كميات مخزون المواد للبدء بجرد جديد">
-            🔄 تصفير الجرد
+          <button class="btn btn-danger btn-sm" onclick="resetInventoryPrompt()" title="تصفير وتفريغ كميات مخزون المواد للبدء بجرد جديد">
+            🔄 تفريغ / تصفير الجرد
           </button>
           <button class="btn btn-gold btn-sm" onclick="openQuickBuffetSaleModal()">
             ⚡ بيع / طلب سريع
@@ -1412,6 +1412,9 @@
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-secondary btn-sm" onclick="openInventoryReportModal()" title="استخراج وطباعة تقرير الصندوق والمخزون">
             📄 تقرير الجرد والصندوق (PDF)
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="resetInventoryPrompt()" title="تصفير وتفريغ حسابات اليومية والصندوق والمخزون">
+            🔄 تصفير / تفريغ الجرد
           </button>
           <button class="btn btn-danger btn-sm" onclick="openExpenseModal()">
             - تسجيل مصروف
@@ -4821,37 +4824,44 @@
     }
 
     function closeDayPrompt() {
-      const netCash = (dailyData.gamesCash + dailyData.buffetCash + dailyData.debtsCollected) - dailyData.expensesTotal;
-      if (confirm(`هل أنت متأكد من تقفيل اليومية وحفظ السجل بالأرشيف؟\nصافي الكاش في الدرج: ${netCash.toLocaleString()} ${settings.currency}`)) {
-        const archiveEntry = {
-          id: 'arch_' + Date.now(),
-          dateStr: new Date().toLocaleDateString('ar-SY', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' }),
-          closedAt: new Date().toLocaleTimeString('ar-SY'),
-          gamesCash: dailyData.gamesCash,
-          buffetCash: dailyData.buffetCash,
-          debtsCollected: dailyData.debtsCollected,
-          expensesTotal: dailyData.expensesTotal,
-          netCash: netCash,
-          operationsCount: dailyData.operations.length
-        };
+      try {
+        const netCash = ((Number(dailyData.gamesCash) || 0) + (Number(dailyData.buffetCash) || 0) + (Number(dailyData.debtsCollected) || 0)) - (Number(dailyData.expensesTotal) || 0);
+        if (confirm(`هل أنت متأكد من تقفيل اليومية وحفظ السجل بالأرشيف؟\nصافي الكاش في الدرج: ${netCash.toLocaleString()} ${settings.currency}`)) {
+          const archiveEntry = {
+            id: 'arch_' + Date.now(),
+            dateStr: new Date().toLocaleDateString('ar-SY', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' }),
+            closedAt: new Date().toLocaleTimeString('ar-SY'),
+            gamesCash: Number(dailyData.gamesCash) || 0,
+            buffetCash: Number(dailyData.buffetCash) || 0,
+            debtsCollected: Number(dailyData.debtsCollected) || 0,
+            expensesTotal: Number(dailyData.expensesTotal) || 0,
+            shamCashTotal: Number(dailyData.shamCashTotal) || 0,
+            netCash: netCash,
+            operationsCount: (dailyData.operations || []).length
+          };
 
-        archives.unshift(archiveEntry);
-        persistArchives();
+          archives.unshift(archiveEntry);
+          persistArchives();
 
-        dailyData = {
-          date: new Date().toDateString(),
-          gamesCash: 0,
-          buffetCash: 0,
-          debtsCollected: 0,
-          expensesTotal: 0,
-          operations: []
-        };
-        persistDailyData();
+          dailyData = {
+            date: new Date().toDateString(),
+            gamesCash: 0,
+            buffetCash: 0,
+            debtsCollected: 0,
+            expensesTotal: 0,
+            shamCashTotal: 0,
+            operations: []
+          };
+          persistDailyData();
 
-        renderDailyOverview();
-        updateTopStats();
-      checkServerDiskSyncOnStartup();
-        showToast('تم تقفيل اليومية وحفظها في الأرشيف بنجاح! 🔒');
+          renderDailyOverview();
+          updateTopStats();
+          scheduleDiskSync();
+          showToast('تم تقفيل اليومية وحفظها في الأرشيف بنجاح! 🔒');
+        }
+      } catch (err) {
+        console.error('Error in closeDayPrompt:', err);
+        alert('حدث خطأ أثناء تقفيل اليومية: ' + err.message);
       }
     }
 
@@ -5165,71 +5175,86 @@
        11. INVENTORY & FINANCIAL REPORT (PDF GENERATION)
        ========================================================= */
     function openInventoryReportModal() {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('ar-SY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeStr = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('reportDateTimeStamp').textContent = `${dateStr} - الساعة ${timeStr}`;
-      document.getElementById('reportCurrencySymbol').textContent = settings.currency;
+      try {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('ar-SY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const timeStr = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('reportDateTimeStamp').textContent = `${dateStr} - الساعة ${timeStr}`;
+        document.getElementById('reportCurrencySymbol').textContent = settings.currency;
 
-      let totalCostVal = 0;
-      let totalSellVal = 0;
+        let totalCostVal = 0;
+        let totalSellVal = 0;
 
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = '';
+        const tbody = document.getElementById('reportTableBody');
+        tbody.innerHTML = '';
 
-      products.forEach((p, idx) => {
-        const itemCostTotal = (p.costPrice || 0) * (p.stock || 0);
-        const itemSellTotal = (p.sellPrice || 0) * (p.stock || 0);
-        totalCostVal += itemCostTotal;
-        totalSellVal += itemSellTotal;
+        products.forEach((p, idx) => {
+          const isGame = p.unit === 'game' || p.type === 'service';
+          const costPriceNum = Number(p.costPrice) || 0;
+          const sellPriceNum = Number(p.sellPrice) || 0;
+          const stockNum = isGame ? 0 : (Number(p.stock) || 0);
 
-        const isLow = p.stock <= p.threshold;
-        const isOut = p.stock <= 0;
+          const itemCostTotal = costPriceNum * stockNum;
+          const itemSellTotal = sellPriceNum * stockNum;
+          if (!isGame) {
+            totalCostVal += itemCostTotal;
+            totalSellVal += itemSellTotal;
+          }
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="text-align:center; color:var(--text-muted);">${idx + 1}</td>
-          <td>
-            <strong>${p.icon || '📦'} ${escapeHtml(p.name)}</strong>
-            ${isOut ? '<span style="color:var(--danger); font-size:0.75rem; margin-right:4px;">(نافد)</span>' : (isLow ? '<span style="color:var(--warning); font-size:0.75rem; margin-right:4px;">(منخفض)</span>' : '')}
-          </td>
-          <td style="text-align:center; font-weight:700;">${p.stock}</td>
-          <td>${p.costPrice.toLocaleString()} ${settings.currency}</td>
-          <td>${p.sellPrice.toLocaleString()} ${settings.currency}</td>
-          <td style="font-weight:700; color:var(--text-gold);">${itemSellTotal.toLocaleString()} ${settings.currency}</td>
+          const isLow = !isGame && p.stock <= p.threshold && p.stock > 0;
+          const isOut = !isGame && p.stock <= 0;
+
+          const unitText = p.unit === 'kg' ? ' كغ' : (isGame ? ' جلسة' : ' قطعة');
+          const costText = isGame ? 'خدمة حرة' : (costPriceNum > 0 ? `${costPriceNum.toLocaleString()} ${settings.currency}` : 'بدون تكلفة');
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="text-align:center; color:var(--text-muted);">${idx + 1}</td>
+            <td>
+              <strong>${p.icon || '📦'} ${escapeHtml(p.name)}</strong>
+              ${isGame ? '<span style="color:var(--text-gold); font-size:0.75rem; margin-right:4px;">(لعبة/خدمة)</span>' : (isOut ? '<span style="color:var(--danger); font-size:0.75rem; margin-right:4px;">(نافد)</span>' : (isLow ? '<span style="color:var(--warning); font-size:0.75rem; margin-right:4px;">(منخفض)</span>' : ''))}
+            </td>
+            <td style="text-align:center; font-weight:700;">${isGame ? '-' : (p.stock + unitText)}</td>
+            <td>${costText}</td>
+            <td>${sellPriceNum.toLocaleString()} ${settings.currency}</td>
+            <td style="font-weight:700; color:var(--text-gold);">${isGame ? '-' : (itemSellTotal.toLocaleString() + ' ' + settings.currency)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Total row in table
+        const totalTr = document.createElement('tr');
+        totalTr.style.fontWeight = 'bold';
+        totalTr.style.background = 'var(--bg-surface)';
+        totalTr.innerHTML = `
+          <td colspan="2" style="text-align:center; color:var(--text-gold);">المجموع العام للمخزون (${products.length} أصناف)</td>
+          <td style="text-align:center;">-</td>
+          <td>${totalCostVal.toLocaleString()} ${settings.currency}</td>
+          <td>-</td>
+          <td style="color:var(--text-gold); font-size:0.95rem;">${totalSellVal.toLocaleString()} ${settings.currency}</td>
         `;
-        tbody.appendChild(tr);
-      });
+        tbody.appendChild(totalTr);
 
-      // Total row in table
-      const totalTr = document.createElement('tr');
-      totalTr.style.fontWeight = 'bold';
-      totalTr.style.background = 'var(--bg-surface)';
-      totalTr.innerHTML = `
-        <td colspan="2" style="text-align:center; color:var(--text-gold);">المجموع العام للمخزون (${products.length} أصناف)</td>
-        <td style="text-align:center;">${products.reduce((acc, p) => acc + (p.stock || 0), 0)} قطعة</td>
-        <td>${totalCostVal.toLocaleString()} ${settings.currency}</td>
-        <td>-</td>
-        <td style="color:var(--text-gold); font-size:0.95rem;">${totalSellVal.toLocaleString()} ${settings.currency}</td>
-      `;
-      tbody.appendChild(totalTr);
+        // KPI Cards
+        document.getElementById('reportTotalCostStock').textContent = `${totalCostVal.toLocaleString()} ${settings.currency}`;
+        document.getElementById('reportTotalSellStock').textContent = `${totalSellVal.toLocaleString()} ${settings.currency}`;
+        
+        const expectedProfit = totalSellVal - totalCostVal;
+        document.getElementById('reportExpectedProfit').textContent = `+${expectedProfit.toLocaleString()} ${settings.currency}`;
+        
+        const netCash = ((Number(dailyData.gamesCash) || 0) + (Number(dailyData.buffetCash) || 0) + (Number(dailyData.debtsCollected) || 0)) - (Number(dailyData.expensesTotal) || 0);
+        document.getElementById('reportCurrentCashBox').textContent = `${netCash.toLocaleString()} ${settings.currency}`;
 
-      // KPI Cards
-      document.getElementById('reportTotalCostStock').textContent = `${totalCostVal.toLocaleString()} ${settings.currency}`;
-      document.getElementById('reportTotalSellStock').textContent = `${totalSellVal.toLocaleString()} ${settings.currency}`;
-      
-      const expectedProfit = totalSellVal - totalCostVal;
-      document.getElementById('reportExpectedProfit').textContent = `+${expectedProfit.toLocaleString()} ${settings.currency}`;
-      
-      const netCash = (dailyData.gamesCash + dailyData.buffetCash + dailyData.debtsCollected) - dailyData.expensesTotal;
-      document.getElementById('reportCurrentCashBox').textContent = `${netCash.toLocaleString()} ${settings.currency}`;
+        // Additional context
+        const totalDebts = debtors.reduce((acc, d) => acc + (getDebtorBalance(d) || 0), 0);
+        document.getElementById('reportTotalDebts').textContent = `${totalDebts.toLocaleString()} ${settings.currency}`;
+        document.getElementById('reportGamesToday').textContent = `${(Number(dailyData.gamesCash) || 0).toLocaleString()} ${settings.currency}`;
 
-      // Additional context
-      const totalDebts = debtors.reduce((acc, d) => acc + getDebtorBalance(d), 0);
-      document.getElementById('reportTotalDebts').textContent = `${totalDebts.toLocaleString()} ${settings.currency}`;
-      document.getElementById('reportGamesToday').textContent = `${dailyData.gamesCash.toLocaleString()} ${settings.currency}`;
-
-      openModal('inventoryReportModal');
+        openModal('inventoryReportModal');
+      } catch (err) {
+        console.error('Error in openInventoryReportModal:', err);
+        alert('حدث خطأ أثناء فتح تقرير الجرد: ' + err.message);
+      }
     }
 
     function printReportNow() {
@@ -5461,17 +5486,75 @@
        RESET INVENTORY & PRODUCT TYPE (MATERIALS VS SERVICES / GAMES)
        ========================================================================== */
     function resetInventoryPrompt() {
-      if (confirm('هل أنت متأكد من تصفير كميات الجرد لجميع المواد الاستهلاكية بالمخزن؟\n\n- ستصبح كميات المواد = 0 للبدء بجرد جديد.\n- لن تُحذف أسماء المواد ولا الأسعار، ولن يتأثر الصندوق ولا الديون.')) {
+      openModal('resetInventoryModal');
+    }
+
+    function executeResetDailySales() {
+      try {
+        const netCash = ((Number(dailyData.gamesCash) || 0) + (Number(dailyData.buffetCash) || 0) + (Number(dailyData.debtsCollected) || 0)) - (Number(dailyData.expensesTotal) || 0);
+        if ((dailyData.operations && dailyData.operations.length > 0) || netCash > 0) {
+          archives.unshift({
+            id: 'arch_' + Date.now(),
+            dateStr: new Date().toLocaleDateString('ar-SY', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' }),
+            closedAt: new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' }),
+            gamesCash: Number(dailyData.gamesCash) || 0,
+            buffetCash: Number(dailyData.buffetCash) || 0,
+            debtsCollected: Number(dailyData.debtsCollected) || 0,
+            expensesTotal: Number(dailyData.expensesTotal) || 0,
+            shamCashTotal: Number(dailyData.shamCashTotal) || 0,
+            netCash: netCash,
+            operationsCount: (dailyData.operations || []).length
+          });
+          persistArchives();
+        }
+
+        dailyData = {
+          date: new Date().toDateString(),
+          gamesCash: 0,
+          buffetCash: 0,
+          debtsCollected: 0,
+          expensesTotal: 0,
+          shamCashTotal: 0,
+          operations: []
+        };
+        persistDailyData();
+
+        renderDailyOverview();
+        updateTopStats();
+        scheduleDiskSync();
+        closeModal('resetInventoryModal');
+        showToast('تم تصفير مبيعات اليومية والصندوق بنجاح! 💰 (حُفظ السجل بالأرشيف)');
+      } catch (err) {
+        console.error('Error in executeResetDailySales:', err);
+        alert('حدث خطأ أثناء تصفير مبيعات اليومية: ' + err.message);
+        closeModal('resetInventoryModal');
+      }
+    }
+
+    function executeResetStockQuantities() {
+      try {
         products.forEach(p => {
-          if (p.type !== 'service') {
+          if (p.type !== 'service' && p.unit !== 'game') {
             p.stock = 0;
           }
         });
         persistProducts();
         renderProducts();
+        updateTopStats();
         scheduleDiskSync();
-        showToast('تم تصفير كميات جرد المخزون بنجاح! 🔄');
+        closeModal('resetInventoryModal');
+        showToast('تم تصفير كميات مخزون المواد بالمستودع بنجاح! 📦');
+      } catch (err) {
+        console.error('Error in executeResetStockQuantities:', err);
+        alert('حدث خطأ أثناء تصفير كميات المخزون: ' + err.message);
+        closeModal('resetInventoryModal');
       }
+    }
+
+    function executeResetAll() {
+      executeResetDailySales();
+      executeResetStockQuantities();
+      showToast('تم التصفير الشامل لليومية والمخزون معاً بنجاح! ⚡');
     }
 
     function filterProductCategory(category) {
@@ -6664,6 +6747,71 @@
         </button>
         <button type="button" class="btn flex-2" onclick="confirmShamCashPaymentDone()" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color:#ffffff !important; font-weight:800; border:none; box-shadow:0 4px 14px rgba(16,185,129,0.35); padding:11px 16px; font-size:1rem; border-radius:var(--radius-md); cursor:pointer;">
           <span style="color:#ffffff !important; font-weight:800; font-size:1rem;">✅ تم الدفع (تحويل للمبيع)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+    <!-- RESET INVENTORY & CASHBOX MODAL (نافذة خيارات تصفير الجرد الشامل) -->
+  <div id="resetInventoryModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 490px; width: 92%; padding: 22px 18px; border-radius: 18px; border: 1.5px solid rgba(212, 175, 55, 0.45); box-shadow: 0 12px 35px rgba(0,0,0,0.5);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.5rem;">🔄</span>
+          <h3 class="text-gold" style="margin:0; font-size:1.15rem;">خيارات تصفير وتفريغ الجرد</h3>
+        </div>
+        <button class="btn-icon btn-sm" onclick="closeModal('resetInventoryModal')">✕</button>
+      </div>
+
+      <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">
+        حدد ما تريد تصفيره بدقة بنقرة واحدة (تصفير أرقام الصندوق والمبيعات، أو تصفير كميات المخزون):
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <!-- Option 1: Reset Daily Sales & Cashbox (جرد الصندوق والمبيعات) -->
+        <div style="background:var(--bg-surface); padding:12px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <div style="font-weight:700; font-size:0.9rem; color:var(--text-gold);">💰 تصفير مبيعات اليومية والصندوق</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+              تصفير كاش المبيعات، ألعاب البلايستيشن، مقبوضات شام كاش، وسجل اليوم لبدء شيفت جديد بـ 0 ل.س.
+            </div>
+          </div>
+          <button type="button" class="btn btn-gold btn-sm" onclick="executeResetDailySales()" style="white-space:nowrap; font-weight:800; padding:8px 14px;">
+            تصفير اليومية ⚡
+          </button>
+        </div>
+
+        <!-- Option 2: Reset Warehouse Stock (جرد كميات المواد) -->
+        <div style="background:var(--bg-surface); padding:12px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <div style="font-weight:700; font-size:0.9rem; color:#ef4444;">📦 تصفير كميات مخزون المواد</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+              جعل كميات المواد الاستهلاكية بالمخزن = 0 لتبدأ عدّ البضاعة وجرد المستودع من جديد.
+            </div>
+          </div>
+          <button type="button" class="btn btn-danger btn-sm" onclick="executeResetStockQuantities()" style="white-space:nowrap; font-weight:800; padding:8px 14px;">
+            تصفير المخزون 🔄
+          </button>
+        </div>
+
+        <!-- Option 3: Full Reset (تصفير شامل للكل) -->
+        <div style="background:var(--bg-surface); padding:12px 14px; border-radius:var(--radius-md); border:1px solid rgba(239,68,68,0.35); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <div style="font-weight:700; font-size:0.9rem; color:var(--text-main);">🔥 تصفير شامل (الصندوق + المخزون)</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+              تصفير مبيعات اليومية وحسابات الصندوق وتصفير كميات المخزون معاً.
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="executeResetAll()" style="white-space:nowrap; font-weight:800; padding:8px 14px; color:#ef4444; border-color:#ef4444;">
+            تصفير شامل 💥
+          </button>
+        </div>
+      </div>
+
+      <div style="text-align:center;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('resetInventoryModal')" style="padding:8px 24px;">
+          إغلاق النافذة
         </button>
       </div>
     </div>
