@@ -296,7 +296,79 @@
     .stat-info h3 { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 3px; }
     .stat-info .stat-value { font-size: 1.25rem; font-weight: 800; color: var(--text-main); }
 
+    
+    /* Dynamic Custom Background Engine */
+    #customBgLayer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      background-size: cover !important;
+      background-position: center center !important;
+      background-repeat: no-repeat !important;
+      background-attachment: fixed !important;
+      pointer-events: none;
+      transition: background 0.3s ease;
+    }
+    #customBgDarkOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      background: rgba(13, 15, 20, 0.82);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      pointer-events: none;
+      display: none;
+    }
+
+    /* Refined 6-item Bottom Nav Bar */
     .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 45;
+      background: var(--nav-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 2px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 0.68rem;
+      font-weight: 600;
+      transition: var(--transition);
+      background: transparent;
+      border: none;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .nav-item svg { width: 19px; height: 19px; transition: var(--transition); flex-shrink: 0; }
+    .nav-item span { overflow: hidden; text-overflow: ellipsis; }
+
+    .bottom-nav-old {
       position: fixed;
       bottom: 0;
       left: 0;
@@ -1059,6 +1131,10 @@
 </head>
 <body data-theme="dark">
 
+  <!-- Dynamic Custom Background & Fit Layer -->
+  <div id="customBgLayer"></div>
+  <div id="customBgDarkOverlay"></div>
+
   <!-- Ringing Banner -->
   <div id="ringingBanner" class="ringing-banner">
     <div class="ringing-banner-content">
@@ -1171,23 +1247,129 @@
     </div>
 
     <!-- TAB 2: BUFFET & CANTEEN & INVENTORY -->
-    <div id="tabBuffet" class="tab-content">
+        <!-- TAB 1.5: MATCHES ATTENDANCE & LIVE STREAMING (حضور وتذاكر المباريات) -->
+    <div id="tabMatches" class="tab-content">
       <div class="section-header">
         <div class="section-title">
-          <span>مبيعات أخرى ومخزون المواد</span>
+          <span>⚽ حضور وتذاكر المباريات والبث المباشر</span>
+          <span id="activeMatchBadge" class="badge badge-success" style="display:none;">مباراة جارية الآن</span>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-gold btn-sm" onclick="openNewMatchModal()" id="btnStartMatchHeader">
+            + بدء مباراة جديدة
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openMatchArchivesModal()" title="سجل وأرشيف المباريات السابقة">
+            📋 أرشيف المباريات
+          </button>
+        </div>
+      </div>
+
+      <!-- View 1: When NO active match is ongoing -->
+      <div id="noActiveMatchView" class="content-card text-center" style="padding:34px 16px; margin-bottom:16px;">
+        <div style="font-size:3.5rem; margin-bottom:12px;">⚽</div>
+        <h3 class="text-gold" style="margin-bottom:8px;">لا توجد مباراة نشطة حالياً</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; max-width:480px; margin:0 auto 20px;">
+          استقبل رواد الصالة وسجل الحضور والتذاكر والطلبات بنقرة واحدة، مع حساب فوري لفاتورة كل شخص أو طاولة.
+        </p>
+        <button class="btn btn-gold" onclick="openNewMatchModal()" style="font-size:1rem; padding:10px 24px;">
+          🚀 فتح بث وتسجيل مباراة جديدة
+        </button>
+      </div>
+
+      <!-- View 2: When an active match is ongoing -->
+      <div id="activeMatchView" style="display:none;">
+        <!-- Match Dashboard Banner -->
+        <div class="content-card" style="margin-bottom:14px; border:1px solid rgba(212,175,55,0.3); background:linear-gradient(135deg, var(--bg-card) 0%, rgba(212,175,55,0.06) 100%);">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; animation:pulse 1.5s infinite;"></span>
+                <span style="font-size:0.8rem; font-weight:700; color:#ef4444;">بث مباشر في الصالة</span>
+                <span id="activeMatchTournamentBadge" class="badge badge-warning" style="font-size:0.75rem;"></span>
+              </div>
+              <h2 id="activeMatchTitleText" style="color:var(--text-gold); margin:4px 0 2px; font-size:1.35rem;"></h2>
+              <div style="font-size:0.82rem; color:var(--text-muted);">
+                بدأت في: <span id="activeMatchStartTimeText"></span> | تسعيرة تذكرة الشخص: <strong id="activeMatchTicketPriceText" class="text-gold"></strong>
+                <button class="btn-icon btn-sm" onclick="editMatchTicketPricePrompt()" title="تعديل تسعيرة التذكرة للشخص" style="margin-right:6px; font-size:0.75rem;">✏️</button>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-gold btn-sm" onclick="quickAddMatchAttendeePrompt()">
+                ⚡ شخص سريع
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="openAddMatchAttendeeModal()">
+                👥 إضافة طاولة / مجموعة
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="endMatchPrompt()">
+                🏁 إنهاء ومحاسبة الأرباح
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Stats Grid for Active Match -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+            <div style="background:var(--bg-surface); padding:10px; border-radius:var(--radius-md); border:1px solid var(--border-color); text-align:center;">
+              <div style="font-size:0.75rem; color:var(--text-muted);">👥 عدد الحضور</div>
+              <div id="matchStatSeatsCount" style="font-size:1.3rem; font-weight:800; color:var(--text-gold);">0</div>
+            </div>
+            <div style="background:var(--bg-surface); padding:10px; border-radius:var(--radius-md); border:1px solid var(--border-color); text-align:center;">
+              <div style="font-size:0.75rem; color:var(--text-muted);">🎟️ إجمالي التذاكر</div>
+              <div id="matchStatTicketsTotal" style="font-size:1.15rem; font-weight:800; color:var(--success);">0</div>
+            </div>
+            <div style="background:var(--bg-surface); padding:10px; border-radius:var(--radius-md); border:1px solid var(--border-color); text-align:center;">
+              <div style="font-size:0.75rem; color:var(--text-muted);">🥤 طلبات ومشروبات</div>
+              <div id="matchStatOrdersTotal" style="font-size:1.15rem; font-weight:800; color:var(--info);">0</div>
+            </div>
+            <div style="background:var(--bg-surface); padding:10px; border-radius:var(--radius-md); border:1px solid var(--border-color); text-align:center;">
+              <div style="font-size:0.75rem; color:var(--text-muted);">💵 المحصل نقداً</div>
+              <div id="matchStatPaidCash" style="font-size:1.15rem; font-weight:800; color:var(--success);">0</div>
+            </div>
+            <div style="background:var(--bg-surface); padding:10px; border-radius:var(--radius-md); border:1px solid var(--border-color); text-align:center;">
+              <div style="font-size:0.75rem; color:var(--text-muted);">⏳ المتبقي ذمم وديون</div>
+              <div id="matchStatUnpaidDebt" style="font-size:1.15rem; font-weight:800; color:var(--danger);">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Attendees -->
+        <div class="search-bar" style="margin-bottom:12px;">
+          <input type="text" id="matchAttendeeSearchInput" class="input-field" placeholder="ابحث باسم الزبون أو رقم الطاولة..." oninput="filterMatchAttendees()">
+        </div>
+
+        <!-- Attendees Grid / Cards -->
+        <div id="matchAttendeesContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:12px;"></div>
+      </div>
+    </div>
+
+
+<div id="tabBuffet" class="tab-content">
+      <div class="section-header">
+        <div class="section-title">
+          <span>المبيعات، المخزون، والألعاب الحرة</span>
           <span id="lowStockBadge" class="badge badge-warning" style="display:none;">0 أصناف بحاجة جرد</span>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-secondary btn-sm" onclick="openInventoryReportModal()" title="تصدير تقرير الجرد والمخزون بصيغة PDF">
             📄 تقرير الجرد (PDF)
           </button>
+          <button class="btn btn-danger btn-sm" onclick="resetInventoryPrompt()" title="تصفير كميات مخزون المواد للبدء بجرد جديد">
+            🔄 تصفير الجرد
+          </button>
           <button class="btn btn-gold btn-sm" onclick="openQuickBuffetSaleModal()">
-            ⚡ بيع سريع
+            ⚡ بيع / طلب سريع
           </button>
           <button class="btn btn-secondary btn-sm" onclick="openAddProductModal()">
             + صنف جديد
           </button>
         </div>
+      </div>
+
+      <!-- Categories Filter Tabs (مواد استهلاكية بمخزون vs ألعاب وخدمات حرة) -->
+      <div style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
+        <button id="filterBtnAll" class="btn btn-gold btn-sm" onclick="filterProductCategory('all')">🔘 عرض الكل</button>
+        <button id="filterBtnMaterials" class="btn btn-secondary btn-sm" onclick="filterProductCategory('material')">📦 مواد ومشروبات (بمخزون)</button>
+        <button id="filterBtnServices" class="btn btn-secondary btn-sm" onclick="filterProductCategory('service')">🎲 ألعاب وخدمات حرة (طاولة زهر، شدة...)</button>
       </div>
 
       <div class="search-bar">
@@ -1322,23 +1504,32 @@
         <div id="pricingTemplatesContainer" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:10px;"></div>
       </div>
 
-      <div class="content-card">
-        <h3 class="text-gold" style="margin-bottom: 14px;">⚙️ تسعيرة اللعب الافتراضية بالساعة</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+            <div class="content-card">
+        <h3 class="text-gold" style="margin-bottom: 12px; display:flex; align-items:center; gap:8px;">
+          <span>🎮</span> تسعيرات أجهزة البلايستيشن بالساعة (ثنائي / ثلاثي / رباعي)
+        </h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+          حدد تسعيرة الساعة لكل نمط لعب على حدى (ثنائي، ثلاثي، رباعي). تُعتمد هذه الأسعار تلقائياً عند بدء أي جلسة بالدقيقة.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
           <div class="form-group">
-            <label class="form-label">سعر الساعة الافتراضي (فردي):</label>
-            <input type="number" id="settingPriceSingle" class="input-field" value="5000">
+            <label class="form-label">🎮 ساعة اللعب الثنائي (يدين):</label>
+            <input type="number" id="settingPriceDual" class="input-field" value="6000">
           </div>
           <div class="form-group">
-            <label class="form-label">سعر الساعة الافتراضي (زوجي / 4 يدات):</label>
-            <input type="number" id="settingPriceMulti" class="input-field" value="8000">
+            <label class="form-label">🎮 ساعة اللعب الثلاثي (3 أيدي):</label>
+            <input type="number" id="settingPriceTriple" class="input-field" value="9000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🎮 ساعة اللعب الرباعي (4 أيدي):</label>
+            <input type="number" id="settingPriceQuad" class="input-field" value="12000">
           </div>
           <div class="form-group">
             <label class="form-label">رمز العملة:</label>
             <input type="text" id="settingCurrency" class="input-field" value="ل.س">
           </div>
         </div>
-        <button class="btn btn-gold mt-4" onclick="saveSettings()">💾 حفظ التسعيرة الافتراضية</button>
+        <button class="btn btn-gold mt-4" onclick="saveSettings()">💾 حفظ التسعيرات الافتراضية</button>
       </div>
 
       <div class="content-card">
@@ -1435,6 +1626,20 @@
       <span>الجلسات</span>
     </button>
 
+    <button class="nav-item" onclick="switchTab('tabMatches', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polygon points="12 7 15 9.5 14 13.5 10 13.5 9 9.5"></polygon>
+        <line x1="12" y1="2" x2="12" y2="7"></line>
+        <line x1="21.5" y1="9" x2="15" y2="9.5"></line>
+        <line x1="18" y1="19.5" x2="14" y2="13.5"></line>
+        <line x1="6" y1="19.5" x2="10" y2="13.5"></line>
+        <line x1="2.5" y1="9" x2="9" y2="9.5"></line>
+      </svg>
+      <span>المباريات</span>
+    </button>
+
+
     <button class="nav-item" onclick="switchTab('tabBuffet', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -1488,13 +1693,16 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">نوع الجلسة:</label>
-          <div style="display:flex; gap:10px;">
-            <button type="button" class="preset-btn flex-1 active" id="typeSingleBtn" onclick="selectPlayType('single')">
-              فردي (1-2 يدات)
+          <label class="form-label">نوع اللعب والأيدي (ثنائي / ثلاثي / رباعي):</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+            <button type="button" class="preset-btn active" id="typeDualBtn" onclick="selectPlayType('dual')">
+              🎮 ثنائي (يدين)
             </button>
-            <button type="button" class="preset-btn flex-1" id="typeMultiBtn" onclick="selectPlayType('multi')">
-              زوجي / جماعي (4 يدات)
+            <button type="button" class="preset-btn" id="typeTripleBtn" onclick="selectPlayType('triple')">
+              🎮 ثلاثي (3 أيدي)
+            </button>
+            <button type="button" class="preset-btn" id="typeQuadBtn" onclick="selectPlayType('quad')">
+              🎮 رباعي (4 أيدي)
             </button>
           </div>
         </div>
@@ -1746,35 +1954,72 @@
           <label class="form-label">اسم المادة / الصنف:</label>
           <input type="text" id="productNameInput" class="input-field" placeholder="مثال: ريدبول، شيبس، أركيلة، فحم، بيبسي...">
         </div>
+        <!-- نوع الصنف: مادة استهلاكية بمخزون vs لعبة / خدمة حرة -->
+                <!-- طبيعة الصنف ووحدة الحساب (قطعة / كيلو / لعبة حرة) -->
         <div class="form-group">
-          <label class="form-label">الأيقونة / الصنف:</label>
+          <label class="form-label">طبيعة الصنف ووحدة البيع:</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
+            <button type="button" id="btnUnitPiece" class="btn btn-gold btn-sm" onclick="setProductUnitMode('piece')">
+              📦 بالقطعة / العلبة
+            </button>
+            <button type="button" id="btnUnitWeight" class="btn btn-secondary btn-sm" onclick="setProductUnitMode('kg')">
+              ⚖️ بالوزن (كغ / غرام)
+            </button>
+            <button type="button" id="btnUnitGame" class="btn btn-secondary btn-sm" onclick="setProductUnitMode('game')">
+              🎲 لعبة أو خدمة حرة
+            </button>
+          </div>
+          <input type="hidden" id="productUnitModeInput" value="piece">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">اسم الصنف أو اللعبة:</label>
+          <input type="text" id="productNameInput" class="input-field" placeholder="مثال: بزر دوار الشمس، كولا، طاولة زهر، متة...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">الأيقونة المعبرة:</label>
           <select id="productIconSelect" class="input-field">
+            <option value="🌻">🌻 بزر وتسالي</option>
+            <option value="🥜">🥜 مكسرات وموالح</option>
+            <option value="🎲">🎲 طاولة زهر وألعاب نرد</option>
+            <option value="🃏">🃏 ورق شدة / بلوت / طرنيب</option>
+            <option value="♟️">♟️ شطرنج وألعاب طاولة</option>
+            <option value="🎱">🎱 بلياردو / فوتوش يدوي</option>
+            <option value="🥤">🥤 كولا ومشروبات باردة</option>
+            <option value="⚡">⚡ مشروبات طاقة</option>
+            <option value="🧉">🧉 متة وضيافة</option>
+            <option value="☕">☕ قهوة وشاي ساخن</option>
             <option value="💨">💨 أراكيل ومعسل</option>
             <option value="🔥">🔥 فحم وغيار رؤوس</option>
-            <option value="🧉">🧉 متة ومستلزماتها</option>
-            <option value="🥤">🥤 مشروبات باردة وعصائر</option>
-            <option value="⚡">⚡ مشروبات طاقة (RedBull / Master)</option>
-            <option value="☕">☕ قهوة وشاي ومشروبات ساخنة</option>
-            <option value="🥔">🥔 شيبس ومسليات</option>
-            <option value="🍫">🍫 شوكولا وبسكويت</option>
+            <option value="🥔">🥔 شيبس وبسكويت</option>
             <option value="💧">💧 مياه معدنية</option>
+            <option value="🎮">🎮 يد تحكم إضافية</option>
           </select>
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-          <div class="form-group">
-            <label class="form-label">سعر التكلفة / الشراء:</label>
-            <input type="number" id="productCostInput" class="input-field" placeholder="0">
+
+        <div class="form-group">
+          <label class="form-label" id="productPriceLabel">سعر المبيع للزبون:</label>
+          <input type="number" id="productPriceInput" class="input-field" placeholder="مثال: 5000">
+        </div>
+
+        <!-- حقول المخزون والتكلفة (تختفي تلقائياً للألعاب والخدمات) -->
+        <div id="productStockFieldsSection">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label class="form-label">سعر الشراء / التكلفة <small style="color:var(--text-muted); font-weight:normal;">(اختياري)</small>:</label>
+              <input type="number" id="productCostInput" class="input-field" placeholder="0 (يمكن تركه فارغاً)">
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="productStockLabel">الكمية المتوفرة بالمخزن:</label>
+              <input type="number" id="productStockInput" class="input-field" value="20" min="0" step="any">
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">سعر المبيع للزبون:</label>
-            <input type="number" id="productPriceInput" class="input-field" placeholder="مثال: 5000">
+          <div class="form-group" id="productThresholdGroup">
+            <label class="form-label" id="productThresholdLabel">حد تنبيه قرب النفاد:</label>
+            <input type="number" id="productThresholdInput" class="input-field" value="3" min="0" step="any">
           </div>
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-          <div class="form-group">
-            <label class="form-label">الكمية المتوفرة بالمخزن:</label>
-            <input type="number" id="productStockInput" class="input-field" value="20" min="0">
-          </div>
           <div class="form-group">
             <label class="form-label">حد تنبيه قرب النفاد:</label>
             <input type="number" id="productThresholdInput" class="input-field" value="3" min="1">
@@ -1848,10 +2093,11 @@
           <input type="text" id="templateNameInput" class="input-field" placeholder="مثال: عرض سهرة الشباب (ساعتين)">
         </div>
         <div class="form-group">
-          <label class="form-label">نوع اللعب:</label>
+          <label class="form-label">نوع اللعب والأيدي:</label>
           <select id="templateTypeSelect" class="input-field">
-            <option value="single">فردي</option>
-            <option value="multi">زوجي / جماعي (4 يدات)</option>
+            <option value="dual">🎮 ثنائي (يدين / 2 لاعبين)</option>
+            <option value="triple">🎮 ثلاثي (3 أيدي / 3 لاعبين)</option>
+            <option value="quad">🎮 رباعي (4 أيدي / 4 لاعبين)</option>
           </select>
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -2159,10 +2405,18 @@
     const STORAGE_KEY_SETTINGS  = 'jaafar_settings_v2';
     const STORAGE_KEY_DAILY     = 'jaafar_daily_v2';
     const STORAGE_KEY_ARCHIVES  = 'jaafar_archives_v2';
+    const STORAGE_KEY_MATCHES       = 'jaafar_matches_v2';
+    const STORAGE_KEY_MATCH_ARCHIVES = 'jaafar_match_archives_v2';
+    let activeMatch = null;
+    let matchArchives = [];
+    let currentProductCategoryFilter = 'all';
+
 
     let settings = {
-      priceSingle: 5000,
-      priceMulti: 8000,
+      priceDual: 6000,
+      priceTriple: 9000,
+      priceQuad: 12000,
+      matchTicketDefault: 10000,
       currency: 'ل.س',
       theme: 'dark'
     };
@@ -2175,7 +2429,18 @@
 
     // Default Buffet & Lounge Products (with Hookah & Coals & Mate)
     const defaultProducts = [
-      { id: 'p_ark', name: 'أركيلة معسل تفاحتين / ميكس', icon: '💨', costPrice: 3000, sellPrice: 8000, stock: 30, threshold: 5 },
+      // ألعاب وخدمات حرة (بدون مخزون وبدون سعر شراء)
+      { id: 'p_tawla', name: 'طاولة زهر (جلسة كاملة)', icon: '🎲', unit: 'game', costPrice: 0, sellPrice: 3000, stock: 999999, threshold: 0 },
+      { id: 'p_shadda', name: 'ورق شدة / طرنيب / بلوت', icon: '🃏', unit: 'game', costPrice: 0, sellPrice: 2000, stock: 999999, threshold: 0 },
+      { id: 'p_chess', name: 'لعبة شطرنج فخمة', icon: '♟️', unit: 'game', costPrice: 0, sellPrice: 2500, stock: 999999, threshold: 0 },
+      { id: 'p_controller', name: 'استئجار يد تحكم إضافية', icon: '🎮', unit: 'game', costPrice: 0, sellPrice: 2000, stock: 999999, threshold: 0 },
+
+      // مواد بالوزن (كيلوغرام / غرام)
+      { id: 'p_seeds', name: 'بزر دوار الشمس محمص', icon: '🌻', unit: 'kg', costPrice: 15000, sellPrice: 22000, stock: 10, threshold: 2 },
+      { id: 'p_pistachio', name: 'فستق حلبي / كاجو مالح', icon: '🥜', unit: 'kg', costPrice: 65000, sellPrice: 85000, stock: 4, threshold: 1 },
+
+      // مواد ومشروبات بالقطعة / العلبة
+      { id: 'p_ark', name: 'أركيلة معسل تفاحتين / ميكس', icon: '💨', unit: 'piece', costPrice: 3000, sellPrice: 8000, stock: 30, threshold: 5 },
       { id: 'p_coal', name: 'غيار فحم / رأس أركيلة', icon: '🔥', costPrice: 500, sellPrice: 2000, stock: 100, threshold: 15 },
       { id: 'p_mate', name: 'كاسة متة مع ضيافة ومكسرات', icon: '🧉', costPrice: 1200, sellPrice: 3500, stock: 40, threshold: 8 },
       { id: 'p_1', name: 'مشروب طاقة ريدبول', icon: '⚡', costPrice: 9000, sellPrice: 12000, stock: 15, threshold: 3 },
@@ -2189,10 +2454,11 @@
     ];
 
     const defaultTemplates = [
-      { id: 'tpl_1', name: 'ساعة فردي قياسية', type: 'single', durationMinutes: 60, price: 5000 },
-      { id: 'tpl_2', name: 'ساعة زوجي (4 يدات)', type: 'multi', durationMinutes: 60, price: 8000 },
-      { id: 'tpl_3', name: 'عرض سهرة ساعتين فردي', type: 'single', durationMinutes: 120, price: 9000 },
-      { id: 'tpl_4', name: 'عرض سهرة ساعتين زوجي', type: 'multi', durationMinutes: 120, price: 15000 }
+      { id: 'tpl_1', name: 'ساعة لعب ثنائي (يدين)', type: 'dual', durationMinutes: 60, price: 6000 },
+      { id: 'tpl_2', name: 'ساعة لعب ثلاثي (3 أيدي)', type: 'triple', durationMinutes: 60, price: 9000 },
+      { id: 'tpl_3', name: 'ساعة لعب رباعي (4 أيدي)', type: 'quad', durationMinutes: 60, price: 12000 },
+      { id: 'tpl_4', name: 'عرض سهرة ساعتين ثنائي', type: 'dual', durationMinutes: 120, price: 11000 },
+      { id: 'tpl_5', name: 'عرض سهرة ساعتين رباعي', type: 'quad', durationMinutes: 120, price: 22000 }
     ];
 
     let devices = [];
@@ -2209,7 +2475,7 @@
     };
     let archives = [];
 
-    let selectedPlayType = 'single';
+    let selectedPlayType = 'dual';
     let currentAlarmInterval = null;
     let isTitleFlashing = false;
     let titleInterval = null;
@@ -2231,7 +2497,9 @@
         products: products,
         templates: templates,
         dailyData: dailyData,
-        archives: archives
+        archives: archives,
+        activeMatch: activeMatch,
+        matchArchives: matchArchives
       };
     }
 
@@ -2328,6 +2596,15 @@
                 if (diskData.templates) templates = diskData.templates;
                 if (diskData.dailyData) dailyData = diskData.dailyData;
                 if (diskData.archives) archives = diskData.archives;
+                if (diskData.activeMatch !== undefined) {
+                  activeMatch = diskData.activeMatch;
+                  persistMatches();
+                }
+                if (diskData.matchArchives) {
+                  matchArchives = diskData.matchArchives;
+                  persistMatchArchives();
+                }
+                renderMatches();
 
                 // Sync to local storage
                 persistDevices();
@@ -2364,8 +2641,12 @@
       loadTemplates();
       loadDailyData();
       loadArchives();
+      loadMatches();
+      loadMatchArchives();
       
       applyTheme(settings.theme);
+      applyCustomBackground();
+      renderMatches();
       renderDevices();
       renderDebtors();
       renderProducts();
@@ -2387,18 +2668,35 @@
         const saved = safeStorage.getItem(STORAGE_KEY_SETTINGS);
         if (saved) settings = { ...settings, ...JSON.parse(saved) };
       } catch (e) { console.error(e); }
-      document.getElementById('settingPriceSingle').value = settings.priceSingle;
-      document.getElementById('settingPriceMulti').value = settings.priceMulti;
-      document.getElementById('settingCurrency').value = settings.currency;
+
+      // Backwards compatibility migration
+      if (!settings.priceDual) settings.priceDual = settings.priceSingle || 6000;
+      if (!settings.priceTriple) settings.priceTriple = Math.round(settings.priceDual * 1.5) || 9000;
+      if (!settings.priceQuad) settings.priceQuad = settings.priceMulti || 12000;
+
+      const dualInput = document.getElementById('settingPriceDual');
+      const tripleInput = document.getElementById('settingPriceTriple');
+      const quadInput = document.getElementById('settingPriceQuad');
+      if (dualInput) dualInput.value = settings.priceDual;
+      if (tripleInput) tripleInput.value = settings.priceTriple;
+      if (quadInput) quadInput.value = settings.priceQuad;
+      const currInput = document.getElementById('settingCurrency');
+      if (currInput) currInput.value = settings.currency || 'ل.س';
     }
 
     function saveSettings() {
       scheduleDiskSync();
-      settings.priceSingle = parseFloat(document.getElementById('settingPriceSingle').value) || 5000;
-      settings.priceMulti = parseFloat(document.getElementById('settingPriceMulti').value) || 8000;
-      settings.currency = document.getElementById('settingCurrency').value.trim() || 'ل.س';
+      const dualInput = document.getElementById('settingPriceDual');
+      const tripleInput = document.getElementById('settingPriceTriple');
+      const quadInput = document.getElementById('settingPriceQuad');
+      if (dualInput) settings.priceDual = parseFloat(dualInput.value) || 6000;
+      if (tripleInput) settings.priceTriple = parseFloat(tripleInput.value) || 9000;
+      if (quadInput) settings.priceQuad = parseFloat(quadInput.value) || 12000;
+      const currInput = document.getElementById('settingCurrency');
+      if (currInput) settings.currency = currInput.value.trim() || 'ل.س';
+
       safeStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
-      showToast('تم حفظ التسعيرة الافتراضية بنجاح! ✅');
+      showToast('تم حفظ التسعيرات الافتراضية بنجاح! ✅');
       renderDevices();
       updateTopStats();
       checkServerDiskSyncOnStartup();
@@ -2505,7 +2803,7 @@
         time: timeStr,
         title: title,
         amount: amount,
-        type: type,
+        unit: unit, type: isGame ? 'service' : 'material',
         note: note
       });
       persistDailyData();
@@ -2676,19 +2974,24 @@
         return session.customPrice || 0;
       }
 
-      let ratePerHour = session.type === 'multi' ? settings.priceMulti : settings.priceSingle;
+      let ratePerHour = settings.priceDual || 6000;
+      if (session.type === 'triple') {
+        ratePerHour = settings.priceTriple || 9000;
+      } else if (session.type === 'quad') {
+        ratePerHour = settings.priceQuad || 12000;
+      } else {
+        ratePerHour = settings.priceDual || 6000;
+      }
       if (session.pricingMode === 'custom_rate' && session.customPrice) {
         ratePerHour = session.customPrice;
       }
 
       const now = Date.now();
-      let minutesPlayed = 0;
-      if (session.isOpenDuration) {
-        minutesPlayed = Math.max(1, Math.ceil((now - session.startTime) / 60000));
-      } else {
-        const elapsedMinutes = Math.ceil((now - session.startTime) / 60000);
-        minutesPlayed = Math.max(session.durationMinutes, elapsedMinutes);
-      }
+      // دقة متناهية: حساب الوقت الفعلي المستغرق دقيقة بدقيقة حتى لو خرج الزبون بنصف الوقت!
+      const elapsedMinutes = Math.max(1, Math.ceil((now - session.startTime) / 60000));
+      
+      // إذا كان الوقت المنقضي أقل من المدة المحجوزة مسبقاً، يحاسب الزبون فقط على الوقت الفعلي الذي لعبه!
+      const minutesPlayed = elapsedMinutes;
 
       return Math.round((minutesPlayed / 60) * ratePerHour);
     }
@@ -2763,8 +3066,8 @@
             <div class="session-details">
               <div class="player-line">
                 <span class="player-name">👤 ${escapeHtml(s.playerName)}</span>
-                <span class="badge ${s.type === 'multi' ? 'badge-gold' : 'badge-info'}">
-                  ${isCafeTable ? 'طاولة كافيه' : (s.type === 'multi' ? 'زوجي (4 يدات)' : 'فردي')}
+                <span class="badge ${s.type === 'quad' ? 'badge-gold' : (s.type === 'triple' ? 'badge-info' : 'badge-success')}">
+                  ${isCafeTable ? 'طاولة كافيه' : (s.type === 'quad' ? '🎮 رباعي (4 أيدي)' : (s.type === 'triple' ? '🎮 ثلاثي (3 أيدي)' : '🎮 ثنائي (يدين)'))}
                 </span>
                 ${s.isPostponed ? '<span class="badge badge-warning" style="background:#f59e0b; color:#111; font-weight:800;">⏳ بانتظار إنهاء المبيعات</span>' : ''}
               </div>
@@ -2970,14 +3273,21 @@
 
     function selectPlayType(type) {
       selectedPlayType = type;
-      const sBtn = document.getElementById('typeSingleBtn');
-      const mBtn = document.getElementById('typeMultiBtn');
-      if (type === 'single') {
-        sBtn.classList.add('active');
-        mBtn.classList.remove('active');
+      ['typeDualBtn', 'typeTripleBtn', 'typeQuadBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.remove('active');
+      });
+
+      if (type === 'triple') {
+        const b = document.getElementById('typeTripleBtn');
+        if (b) b.classList.add('active');
+      } else if (type === 'quad') {
+        const b = document.getElementById('typeQuadBtn');
+        if (b) b.classList.add('active');
       } else {
-        sBtn.classList.remove('active');
-        mBtn.classList.add('active');
+        selectedPlayType = 'dual';
+        const b = document.getElementById('typeDualBtn');
+        if (b) b.classList.add('active');
       }
     }
 
@@ -3360,7 +3670,7 @@
       
       document.getElementById('endSessionDeviceId').value = deviceId;
       document.getElementById('billDeviceName').textContent = `${device.name} (${device.type})`;
-      document.getElementById('billPlayerName').textContent = `الزبون: ${s.playerName} - ${device.type === 'طاولة كافيه' ? 'طاولة كافيه' : (s.type === 'multi' ? 'لعب زوجي' : 'لعب فردي')}`;
+      document.getElementById('billPlayerName').textContent = `الزبون: ${s.playerName} - ${device.type === 'طاولة كافيه' ? 'طاولة كافيه' : (s.type === 'quad' ? 'لعب رباعي (4 أيدي)' : (s.type === 'triple' ? 'لعب ثلاثي (3 أيدي)' : 'لعب ثنائي (يدين)'))}`;
       
       document.getElementById('billGameAmount').textContent = `${gameCost.toLocaleString()} ${settings.currency}`;
       document.getElementById('billBuffetAmount').textContent = `${buffetCost.toLocaleString()} ${settings.currency}`;
@@ -3378,8 +3688,12 @@
         document.getElementById('btnPostponeBilling').style.display = 'none';
       }
 
-      const playedMins = Math.ceil((Date.now() - s.startTime) / 60000);
-      document.getElementById('billTimeDetails').textContent = `وقت البدء: ${s.startTimeFormatted} | المدة: ${playedMins} دقيقة`;
+      const playedMins = Math.max(1, Math.ceil((Date.now() - s.startTime) / 60000));
+      let durationNote = '';
+      if (!s.isOpenDuration && s.durationMinutes && playedMins < s.durationMinutes) {
+        durationNote = ` <span style="color:var(--text-gold); font-weight:700;">(خروج مبكر: حُسبت ${playedMins} دقيقة فعلية فقط بدلاً من ${s.durationMinutes} دقيقة)</span>`;
+      }
+      document.getElementById('billTimeDetails').innerHTML = `وقت البدء: ${s.startTimeFormatted} | المدة الفعلية الملعوبة: <strong>${playedMins} دقيقة</strong>${durationNote}`;
 
       device.session.isRinging = false;
       stopAlarmSound();
@@ -3509,17 +3823,46 @@
     }
 
     /* Buffet & Canteen & Inventory */
-    function renderProducts(list = products) {
+        function renderProducts(list = products) {
       const container = document.getElementById('productsContainer');
       container.innerHTML = '';
 
       let lowStockCount = 0;
 
-      list.forEach(p => {
-        if (p.stock <= p.threshold) lowStockCount++;
+      // Filter by category if set
+      if (currentProductCategoryFilter === 'material') {
+        list = list.filter(p => p.type !== 'service');
+      } else if (currentProductCategoryFilter === 'service') {
+        list = list.filter(p => p.type === 'service');
+      }
 
-        const isOut = p.stock <= 0;
-        const isLow = p.stock <= p.threshold && p.stock > 0;
+      list.forEach(p => {
+        const isGame = p.unit === 'game' || p.type === 'service';
+        const isKg = p.unit === 'kg';
+        const isPiece = !isGame && !isKg;
+
+        if (!isGame && p.stock <= p.threshold) lowStockCount++;
+
+        const isOut = !isGame && p.stock <= 0;
+        const isLow = !isGame && p.stock <= p.threshold && p.stock > 0;
+
+        let unitBadge = '';
+        let priceSub = '';
+        let stockSub = '';
+
+        if (isGame) {
+          unitBadge = '<span class="badge badge-info" style="background:rgba(59,130,246,0.18); color:#60a5fa; border:1px solid rgba(59,130,246,0.35);">🎲 لعبة / خدمة حرة</span>';
+          priceSub = '<span style="font-size:0.75rem; color:var(--text-muted);">/ جلسة</span>';
+          stockSub = '<span style="color:var(--text-gold);">خدمة حرة (غير خاضعة لنفاد المخزون)</span>';
+        } else if (isKg) {
+          unitBadge = isOut ? '<span class="badge badge-danger">نفد الوزن!</span>' : (isLow ? '<span class="badge badge-warning">الوزن قليل!</span>' : '<span class="badge badge-success">متوفر بالوزن</span>');
+          priceSub = '<span style="font-size:0.75rem; color:var(--text-muted);">/ كغ</span>';
+          stockSub = `<span>المتبقي بالمخزن:</span><strong style="color:var(--text-main); font-size:0.95rem;">${p.stock} كغ</strong>`;
+        } else {
+          unitBadge = isOut ? '<span class="badge badge-danger">نفدت الكمية!</span>' : (isLow ? '<span class="badge badge-warning">المخزون قليل!</span>' : '<span class="badge badge-success">متوفر</span>');
+          priceSub = '<span style="font-size:0.75rem; color:var(--text-muted);">/ قطعة</span>';
+          stockSub = `<span>المتبقي بالمخزن:</span><strong style="color:var(--text-main); font-size:0.95rem;">${p.stock} قطعة</strong>`;
+        }
 
         const card = document.createElement('div');
         card.className = `product-card ${isOut ? 'out-of-stock' : ''}`;
@@ -3527,34 +3870,33 @@
           <div>
             <div class="product-header">
               <div class="product-icon-wrap">${p.icon || '🥤'}</div>
-              <div>
-                ${isOut ? '<span class="badge badge-danger">نفدت الكمية!</span>' : (isLow ? '<span class="badge badge-warning">المخزون قليل!</span>' : '<span class="badge badge-success">متوفر</span>')}
-              </div>
+              <div>${unitBadge}</div>
             </div>
 
             <div class="product-title">${escapeHtml(p.name)}</div>
             <div class="product-prices">
-              <span class="sell-price">${p.sellPrice.toLocaleString()} ${settings.currency}</span>
-              <span class="cost-price">التكلفة: ${p.costPrice.toLocaleString()} ${settings.currency}</span>
+              <span class="sell-price">${p.sellPrice.toLocaleString()} ${settings.currency} ${priceSub}</span>
+              ${(!isGame && p.costPrice > 0) ? `<span class="cost-price">التكلفة: ${p.costPrice.toLocaleString()}</span>` : (!isGame ? '<span class="cost-price" style="color:var(--text-muted);">بدون تكلفة</span>' : '<span class="cost-price" style="color:var(--text-gold);">خدمة حرة</span>')}
             </div>
             
             <div style="font-size:0.82rem; margin-top:6px; color:var(--text-muted); display:flex; justify-content:space-between;">
-              <span>المتبقي بالمخزن:</span>
-              <strong style="color:var(--text-main); font-size:0.95rem;">${p.stock} قطعة</strong>
+              ${stockSub}
             </div>
           </div>
 
           <div style="display:flex; gap:6px; margin-top:12px;">
-            <button class="btn btn-secondary btn-sm flex-1" onclick="restockProductPrompt('${p.id}')" title="شراء وإضافة بضاعة للمخزن">
-              + تزويد
-            </button>
+            ${!isService ? `
+              <button class="btn btn-secondary btn-sm flex-1" onclick="restockProductPrompt('${p.id}')" title="شراء وإضافة بضاعة للمخزن">
+                + تزويد
+              </button>
+            ` : ''}
             <button class="btn btn-gold btn-sm flex-1" onclick="quickSellSingleProduct('${p.id}')" ${isOut ? 'disabled' : ''}>
-              ⚡ بيع
+              ⚡ ${isService ? 'طلب فوري' : 'بيع'}
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')" title="تعديل السعر والمادة">
+            <button class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')" title="تعديل السعر والصنف">
               ✏️
             </button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')" title="إزالة المادة نهائياً" style="padding:4px 8px; font-size:0.85rem;">
+            <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')" title="إزالة الصنف نهائياً" style="padding:4px 8px; font-size:0.85rem;">
               🗑️
             </button>
           </div>
@@ -3564,11 +3906,15 @@
 
       const badge = document.getElementById('lowStockBadge');
       if (lowStockCount > 0) {
-        badge.style.display = 'inline-flex';
-        badge.textContent = `${lowStockCount} أصناف قاربت على النفاد!`;
+        badge.style.display = 'inline-block';
+        badge.textContent = `${lowStockCount} أصناف بحاجة جرد`;
       } else {
         badge.style.display = 'none';
       }
+      return;
+    }
+
+    function renderProductsOldDummy() {
     }
 
     function filterProducts() {
@@ -3582,13 +3928,14 @@
     }
 
     function openAddProductModal() {
-      document.getElementById('productModalTitle').textContent = 'إضافة صنف جديد للبوفيه';
+      document.getElementById('productModalTitle').textContent = 'إضافة صنف جديد (مادة أو لعبة حرة)';
       document.getElementById('editProductId').value = '';
       document.getElementById('productNameInput').value = '';
       document.getElementById('productCostInput').value = '';
       document.getElementById('productPriceInput').value = '';
       document.getElementById('productStockInput').value = '10';
       document.getElementById('productThresholdInput').value = '3';
+      setProductUnitMode('piece');
       openModal('productModal');
       setTimeout(() => document.getElementById('productNameInput').focus(), 150);
     }
@@ -3621,10 +3968,11 @@
       document.getElementById('editProductId').value = p.id;
       document.getElementById('productNameInput').value = p.name;
       document.getElementById('productIconSelect').value = p.icon || '🥤';
-      document.getElementById('productCostInput').value = p.costPrice;
-      document.getElementById('productPriceInput').value = p.sellPrice;
-      document.getElementById('productStockInput').value = p.stock;
-      document.getElementById('productThresholdInput').value = p.threshold;
+      document.getElementById('productCostInput').value = p.costPrice || 0;
+      document.getElementById('productPriceInput').value = p.sellPrice || 0;
+      document.getElementById('productStockInput').value = p.stock || 0;
+      document.getElementById('productThresholdInput').value = p.threshold || 0;
+      setProductUnitMode(p.unit || (p.type === 'service' ? 'game' : 'piece'));
 
       openModal('productModal');
     }
@@ -3633,10 +3981,15 @@
       const id = document.getElementById('editProductId').value;
       const name = document.getElementById('productNameInput').value.trim();
       const icon = document.getElementById('productIconSelect').value;
-      const cost = parseFloat(document.getElementById('productCostInput').value) || 0;
+      const unit = document.getElementById('productUnitModeInput').value || 'piece';
+      const isGame = unit === 'game';
+      const isKg = unit === 'kg';
+      
+      // سعر الشراء اختياري تماماً
+      const cost = isGame ? 0 : (parseFloat(document.getElementById('productCostInput').value) || 0);
       const price = parseFloat(document.getElementById('productPriceInput').value) || 0;
-      const stock = parseInt(document.getElementById('productStockInput').value) || 0;
-      const threshold = parseInt(document.getElementById('productThresholdInput').value) || 3;
+      const stock = isGame ? 999999 : (parseFloat(document.getElementById('productStockInput').value) || 0);
+      const threshold = isGame ? 0 : (parseFloat(document.getElementById('productThresholdInput').value) || (isKg ? 0.5 : 3));
 
       if (!name) {
         alert('يرجى إدخال اسم الصنف.');
@@ -3648,6 +4001,7 @@
         if (p) {
           p.name = name;
           p.icon = icon;
+          p.unit = unit; p.type = isGame ? 'service' : 'material';
           p.costPrice = cost;
           p.sellPrice = price;
           p.stock = stock;
@@ -3658,6 +4012,7 @@
           id: 'p_' + Date.now(),
           name: name,
           icon: icon,
+          type: type,
           costPrice: cost,
           sellPrice: price,
           stock: stock,
@@ -3666,9 +4021,10 @@
       }
 
       persistProducts();
-      closeModal('productModal');
       renderProducts();
-      showToast('تم حفظ الصنف بنجاح! 🥤');
+      closeModal('productModal');
+      scheduleDiskSync();
+      showToast(isService ? 'تم حفظ اللعبة / الخدمة الحرة بنجاح! 🎲' : 'تم حفظ الصنف بنجاح! 🥤');
     }
 
     function restockProductPrompt(productId) {
@@ -3806,16 +4162,64 @@
 
     function quickSellSingleProduct(productId) {
       const p = products.find(prod => prod.id === productId);
-      if (!p || p.stock <= 0) return;
+      if (!p) return;
 
+      const isGame = p.unit === 'game' || p.type === 'service';
+      const isKg = p.unit === 'kg';
+
+      if (!isGame && p.stock <= 0) {
+        alert('نفد هذا الصنف من المخزن!');
+        return;
+      }
+
+      if (isGame) {
+        if (confirm(`تأكيد طلب لعبة / خدمة (${p.name}) نقداً بقيمة ${p.sellPrice.toLocaleString()} ${settings.currency}؟`)) {
+          dailyData.buffetCash += p.sellPrice;
+          logDailyOperation(`طلب لعبة/خدمة: ${p.name}`, p.sellPrice, 'income', 'ألعاب وخدمات حرة');
+          renderDailyOverview();
+          updateTopStats();
+          scheduleDiskSync();
+          showToast(`تم تسجيل طلب ${p.name} بنجاح! 🎲`);
+        }
+        return;
+      }
+
+      if (isKg) {
+        const choice = prompt(`بيع صنف بالوزن (${p.name}):\nسعر الكيلو: ${p.sellPrice.toLocaleString()} ${settings.currency}\n\nأدخل الوزن المطلوب بالكيلو (مثال: 0.25 لربع كيلو، أو 0.5 لنصف كيلو، أو 0.1 لـ 100غ):`, '0.25');
+        if (choice !== null) {
+          const weight = parseFloat(choice);
+          if (isNaN(weight) || weight <= 0) {
+            alert('يرجى إدخال وزن صحيح بالكيلو.');
+            return;
+          }
+          if (weight > p.stock) {
+            alert(`الوزن المطلوب (${weight} كغ) أكبر من المتوفر بالمخزن (${p.stock} كغ)!`);
+            return;
+          }
+          const totalCost = Math.round(weight * p.sellPrice);
+          p.stock = Math.max(0, +(p.stock - weight).toFixed(2));
+          persistProducts();
+          dailyData.buffetCash += totalCost;
+          logDailyOperation(`بيع بالوزن: ${p.name} (${weight} كغ)`, totalCost, 'income', 'مبيعات تسالي بالوزن');
+          renderProducts();
+          renderDailyOverview();
+          updateTopStats();
+          scheduleDiskSync();
+          showToast(`تم بيع ${weight} كغ من (${p.name}) بقيمة ${totalCost.toLocaleString()} ${settings.currency} ⚡`);
+        }
+        return;
+      }
+
+      // بالقطعة / العلبة
       if (confirm(`تأكيد بيع قطعة واحدة (${p.name}) نقداً بقيمة ${p.sellPrice.toLocaleString()} ${settings.currency}؟`)) {
         p.stock -= 1;
         persistProducts();
         dailyData.buffetCash += p.sellPrice;
         logDailyOperation(`بيع سريع: ${p.name}`, p.sellPrice, 'income', 'كاش فوري');
         renderProducts();
+        renderDailyOverview();
         updateTopStats();
-      checkServerDiskSyncOnStartup();
+        scheduleDiskSync();
         showToast(`تم بيع 1 ${p.name} بنجاح! 🥤`);
       }
     }
@@ -4207,20 +4611,23 @@
       if (!dailyData.operations || dailyData.operations.length === 0) {
         timeline.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">لا توجد حركات مسجلة بالصندوق اليوم حتى الآن.</div>';
       } else {
-        dailyData.operations.forEach(op => {
+        dailyData.operations.forEach((op, idx) => {
           const isExpense = op.type === 'expense';
           const item = document.createElement('div');
           item.className = 'timeline-item';
           item.innerHTML = `
-            <div>
-              <div style="font-weight:700; color:${isExpense ? 'var(--danger)' : 'var(--success)'};">
-                ${isExpense ? '➖ مصروف: ' : '➕ مقبوض: '} ${op.amount.toLocaleString()} ${settings.currency}
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <div>
+                <div style="font-weight:700; color:${isExpense ? 'var(--danger)' : 'var(--success)'};">
+                  ${isExpense ? '➖ مصروف: ' : '➕ مقبوض: '} ${op.amount.toLocaleString()} ${settings.currency}
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-main); margin-top:2px;">${escapeHtml(op.title)}</div>
+                ${op.note ? `<div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(op.note)}</div>` : ''}
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${op.time}</div>
               </div>
-              <div style="font-size:0.8rem; color:var(--text-main); margin-top:2px;">${escapeHtml(op.title)}</div>
-              ${op.note ? `<div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(op.note)}</div>` : ''}
-            </div>
-            <div style="font-size:0.75rem; color:var(--text-muted); text-align:left;">
-              ${op.time}
+              <button class="btn btn-danger btn-sm" onclick="deleteDailyOperationPrompt(${idx})" title="إلغاء وحذف هذه الحركة وتعديل رصيد الصندوق" style="padding:4px 8px; font-size:0.78rem; white-space:nowrap;">
+                🗑️ إلغاء
+              </button>
             </div>
           `;
           timeline.appendChild(item);
@@ -4342,7 +4749,9 @@
           <div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
               <strong style="color:var(--text-main); font-size:0.92rem;">${escapeHtml(t.name)}</strong>
-              <span class="badge badge-gold" style="font-size:0.7rem;">${t.type === 'multi' ? 'زوجي' : 'فردي'}</span>
+              <span class="badge ${t.type === 'quad' ? 'badge-gold' : (t.type === 'triple' ? 'badge-info' : 'badge-success')}" style="font-size:0.7rem;">
+                ${t.type === 'quad' ? '🎮 رباعي (4 أيدي)' : (t.type === 'triple' ? '🎮 ثلاثي (3 أيدي)' : '🎮 ثنائي (يدين)')}
+              </span>
             </div>
             <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">
               المدة: ${t.durationMinutes} دقيقة
@@ -4705,23 +5114,26 @@
 
       const key = e.key.toLowerCase();
 
-      // Navigation Shortcuts (1-5 or F1-F5)
+      // Navigation Shortcuts (1-6 or F1-F6)
       const navItems = document.querySelectorAll('.bottom-nav .nav-item');
       if (key === '1' || e.key === 'F1') {
         e.preventDefault();
         if (navItems[0]) switchTab('tabSessions', navItems[0]);
       } else if (key === '2' || e.key === 'F2') {
         e.preventDefault();
-        if (navItems[1]) switchTab('tabBuffet', navItems[1]);
+        if (navItems[1]) switchTab('tabMatches', navItems[1]);
       } else if (key === '3' || e.key === 'F3') {
         e.preventDefault();
-        if (navItems[2]) switchTab('tabDebts', navItems[2]);
+        if (navItems[2]) switchTab('tabBuffet', navItems[2]);
       } else if (key === '4' || e.key === 'F4') {
         e.preventDefault();
-        if (navItems[3]) switchTab('tabDaily', navItems[3]);
+        if (navItems[3]) switchTab('tabDebts', navItems[3]);
       } else if (key === '5' || e.key === 'F5') {
         e.preventDefault();
-        if (navItems[4]) switchTab('tabSettings', navItems[4]);
+        if (navItems[4]) switchTab('tabDaily', navItems[4]);
+      } else if (key === '6' || e.key === 'F6') {
+        e.preventDefault();
+        if (navItems[5]) switchTab('tabSettings', navItems[5]);
       }
       // Action Shortcuts
       else if (key === 'n') {
@@ -4762,7 +5174,851 @@
     }
 
 
-  </script>
+  
+
+    /* ==========================================================================
+       DYNAMIC BACKGROUND CUSTOMIZER ENGINE (لون محدد أو صورة بدون فراغات)
+       ========================================================================== */
+    function applyCustomBackground() {
+      const bgLayer = document.getElementById('customBgLayer');
+      const overlay = document.getElementById('customBgDarkOverlay');
+      if (!bgLayer) return;
+
+      const bgType = settings.bgType || 'default';
+      const bgColor = settings.bgColor || '#0d0f14';
+      const bgImage = settings.bgImage || '';
+
+      const picker = document.getElementById('customBgColorPicker');
+      const hexText = document.getElementById('customBgColorHexText');
+      const previewWrap = document.getElementById('bgImagePreviewWrap');
+      const previewImg = document.getElementById('bgImagePreview');
+
+      if (picker) picker.value = bgColor.startsWith('#') && bgColor.length === 7 ? bgColor : '#0d0f14';
+      if (hexText) hexText.textContent = bgColor;
+
+      if (bgType === 'image' && bgImage) {
+        bgLayer.style.backgroundImage = `url("${bgImage}")`;
+        bgLayer.style.backgroundColor = '#0d0f14';
+        if (overlay) overlay.style.display = 'block';
+        if (previewWrap) previewWrap.style.display = 'flex';
+        if (previewImg) previewImg.src = bgImage;
+      } else if (bgType === 'color') {
+        bgLayer.style.backgroundImage = 'none';
+        bgLayer.style.backgroundColor = bgColor;
+        document.body.style.backgroundColor = bgColor;
+        if (overlay) overlay.style.display = 'none';
+        if (previewWrap) previewWrap.style.display = 'none';
+      } else {
+        // Default Dark Gold Theme
+        bgLayer.style.backgroundImage = 'none';
+        bgLayer.style.backgroundColor = '#0d0f14';
+        document.body.style.backgroundColor = '#0d0f14';
+        if (overlay) overlay.style.display = 'none';
+        if (previewWrap) previewWrap.style.display = 'none';
+      }
+    }
+
+    function setPresetBgColor(color) {
+      settings.bgType = 'color';
+      settings.bgColor = color;
+      settings.bgImage = '';
+      safeStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+      applyCustomBackground();
+      scheduleDiskSync();
+      showToast('تم تطبيق وحفظ اللون المختار للخلفية بنجاح! 🎨');
+    }
+
+    function handleCustomBgColorChange(color) {
+      settings.bgType = 'color';
+      settings.bgColor = color;
+      settings.bgImage = '';
+      const hexText = document.getElementById('customBgColorHexText');
+      if (hexText) hexText.textContent = color;
+      safeStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+      applyCustomBackground();
+      scheduleDiskSync();
+      showToast('تم حفظ اللون المخصص! 🎨');
+    }
+
+    function handleBgImageUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // Resize image to max 1920x1080 to ensure optimal size (~200KB) and smooth saving
+          const canvas = document.createElement('canvas');
+          let w = img.width;
+          let h = img.height;
+          const maxW = 1920;
+          const maxH = 1080;
+
+          if (w > maxW || h > maxH) {
+            if (w / h > maxW / maxH) {
+              h = Math.round(h * (maxW / w));
+              w = maxW;
+            } else {
+              w = Math.round(w * (maxH / h));
+              h = maxH;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          settings.bgType = 'image';
+          settings.bgImage = compressedDataUrl;
+          safeStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+          applyCustomBackground();
+          scheduleDiskSync();
+          showToast('تم رفع وتثبيت صورة الخلفية بنجاح دون أي فراغات! 🖼️');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetCustomBackground() {
+      settings.bgType = 'default';
+      settings.bgColor = '#0d0f14';
+      settings.bgImage = '';
+      safeStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+      applyCustomBackground();
+      scheduleDiskSync();
+      showToast('تمت استعادة الخلفية الأصلية الافتراضية! 🔄');
+    }
+
+    /* ==========================================================================
+       RESET INVENTORY & PRODUCT TYPE (MATERIALS VS SERVICES / GAMES)
+       ========================================================================== */
+    function resetInventoryPrompt() {
+      if (confirm('هل أنت متأكد من تصفير كميات الجرد لجميع المواد الاستهلاكية بالمخزن؟\n\n- ستصبح كميات المواد = 0 للبدء بجرد جديد.\n- لن تُحذف أسماء المواد ولا الأسعار، ولن يتأثر الصندوق ولا الديون.')) {
+        products.forEach(p => {
+          if (p.type !== 'service') {
+            p.stock = 0;
+          }
+        });
+        persistProducts();
+        renderProducts();
+        scheduleDiskSync();
+        showToast('تم تصفير كميات جرد المخزون بنجاح! 🔄');
+      }
+    }
+
+    function filterProductCategory(category) {
+      currentProductCategoryFilter = category;
+      ['filterBtnAll', 'filterBtnMaterials', 'filterBtnServices'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.className = 'btn btn-secondary btn-sm';
+      });
+
+      if (category === 'material') {
+        const b = document.getElementById('filterBtnMaterials');
+        if (b) b.className = 'btn btn-gold btn-sm';
+      } else if (category === 'service') {
+        const b = document.getElementById('filterBtnServices');
+        if (b) b.className = 'btn btn-gold btn-sm';
+      } else {
+        const b = document.getElementById('filterBtnAll');
+        if (b) b.className = 'btn btn-gold btn-sm';
+      }
+      renderProducts();
+    }
+
+    function setProductTypeMode(mode) {
+      document.getElementById('productTypeInput').value = mode;
+      const btnMat = document.getElementById('btnProductTypeMaterial');
+      const btnSer = document.getElementById('btnProductTypeService');
+      const stockFields = document.getElementById('productStockFieldsSection');
+      const priceLabel = document.getElementById('productPriceLabel');
+
+      if (mode === 'service') {
+        if (btnSer) btnSer.className = 'btn btn-gold btn-sm';
+        if (btnMat) btnMat.className = 'btn btn-secondary btn-sm';
+        if (stockFields) stockFields.style.display = 'none';
+        if (priceLabel) priceLabel.textContent = 'تسعيرة الطلب / الجلسة للزبون:';
+      } else {
+        if (btnMat) btnMat.className = 'btn btn-gold btn-sm';
+        if (btnSer) btnSer.className = 'btn btn-secondary btn-sm';
+        if (stockFields) stockFields.style.display = 'block';
+        if (priceLabel) priceLabel.textContent = 'سعر المبيع للزبون:';
+      }
+    }
+
+    /* ==========================================================================
+       DELETE DAILY CASHBOX OPERATION (إلغاء وتعديل إدخال خاطئ في الصندوق)
+       ========================================================================== */
+    function deleteDailyOperationPrompt(index) {
+      const op = dailyData.operations[index];
+      if (!op) return;
+
+      if (confirm(`هل تريد بالتأكيد إلغاء وحذف هذه الحركة من الصندوق وتعديل الرصيد؟\n\n"${op.title}" بمبلغ ${op.amount.toLocaleString()} ${settings.currency}`)) {
+        if (op.type === 'expense') {
+          dailyData.expensesTotal = Math.max(0, dailyData.expensesTotal - op.amount);
+        } else {
+          // Deduct from appropriate income bucket
+          if (op.title.includes('فاتورة') || op.title.includes('PS4') || op.title.includes('لعب')) {
+            dailyData.gamesCash = Math.max(0, dailyData.gamesCash - op.amount);
+          } else if (op.title.includes('بوفيه') || op.title.includes('بيع سريع') || op.title.includes('مادة')) {
+            dailyData.buffetCash = Math.max(0, dailyData.buffetCash - op.amount);
+          } else if (op.title.includes('دفعة دين')) {
+            dailyData.debtsCollected = Math.max(0, dailyData.debtsCollected - op.amount);
+          } else {
+            dailyData.buffetCash = Math.max(0, dailyData.buffetCash - op.amount);
+          }
+        }
+
+        dailyData.operations.splice(index, 1);
+        persistDailyData();
+        renderDailyOverview();
+        updateTopStats();
+        scheduleDiskSync();
+        showToast('تم إلغاء الحركة وإعادة ضبط رصيد الصندوق بنجاح! ↩️');
+      }
+    }
+
+    /* ==========================================================================
+       MATCHES & LIVE BROADCAST ATTENDANCE SYSTEM (إدارة حضور وتذاكر المباريات)
+       ========================================================================== */
+    function loadMatches() {
+      try {
+        const saved = safeStorage.getItem(STORAGE_KEY_MATCHES);
+        activeMatch = saved ? JSON.parse(saved) : null;
+      } catch (e) {
+        console.error(e);
+        activeMatch = null;
+      }
+    }
+
+    function persistMatches() {
+      scheduleDiskSync();
+      if (activeMatch) {
+        safeStorage.setItem(STORAGE_KEY_MATCHES, JSON.stringify(activeMatch));
+      } else {
+        safeStorage.removeItem(STORAGE_KEY_MATCHES);
+      }
+    }
+
+    function loadMatchArchives() {
+      try {
+        const saved = safeStorage.getItem(STORAGE_KEY_MATCH_ARCHIVES);
+        matchArchives = saved ? JSON.parse(saved) : [];
+      } catch (e) {
+        matchArchives = [];
+      }
+    }
+
+    function persistMatchArchives() {
+      scheduleDiskSync();
+      safeStorage.setItem(STORAGE_KEY_MATCH_ARCHIVES, JSON.stringify(matchArchives));
+    }
+
+    function openNewMatchModal() {
+      document.getElementById('newMatchTitleInput').value = '';
+      document.getElementById('newMatchTournamentInput').value = '';
+      document.getElementById('newMatchTicketPriceInput').value = settings.matchTicketDefault || 10000;
+      openModal('newMatchModal');
+    }
+
+    function confirmStartMatch() {
+      const title = document.getElementById('newMatchTitleInput').value.trim();
+      const tournament = document.getElementById('newMatchTournamentInput').value.trim() || 'بث مباشر';
+      const ticketPrice = parseFloat(document.getElementById('newMatchTicketPriceInput').value) || 10000;
+
+      if (!title) {
+        alert('يرجى إدخال عنوان المباراة والطرفين (مثال: ريال مدريد ✘ برشلونة).');
+        return;
+      }
+
+      settings.matchTicketDefault = ticketPrice;
+      safeStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+
+      activeMatch = {
+        id: 'm_' + Date.now(),
+        title: title,
+        tournament: tournament,
+        ticketPrice: ticketPrice,
+        startTime: Date.now(),
+        startTimeFormatted: new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' }),
+        attendees: []
+      };
+
+      persistMatches();
+      closeModal('newMatchModal');
+      renderMatches();
+      showToast(`تم بدء بث واستقبال تذاكر (${title}) بنجاح! ⚽`);
+    }
+
+    function editMatchTicketPricePrompt() {
+      if (!activeMatch) return;
+      const current = activeMatch.ticketPrice || 10000;
+      const next = prompt('أدخل تسعيرة تذكرة حضور الشخص الافتراضية للمباراة:', current);
+      if (next !== null) {
+        const val = parseFloat(next);
+        if (!isNaN(val) && val >= 0) {
+          activeMatch.ticketPrice = val;
+          persistMatches();
+          renderMatches();
+          showToast(`تم تعديل تسعيرة الشخص إلى ${val.toLocaleString()} ${settings.currency} ✅`);
+        }
+      }
+    }
+
+    function quickAddMatchAttendeePrompt() {
+      if (!activeMatch) return;
+      const count = activeMatch.attendees.length + 1;
+      const name = `زبون #${count}`;
+      const attendee = {
+        id: 'att_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        name: name,
+        seatsCount: 1,
+        ticketPrice: activeMatch.ticketPrice,
+        orders: [],
+        isPaid: false,
+        paidAt: null,
+        isDebt: false
+      };
+      activeMatch.attendees.unshift(attendee);
+      persistMatches();
+      renderMatches();
+      showToast(`تمت إضافة (${name}) - تذكرة 1 مقعد 🎟️`);
+    }
+
+    function openAddMatchAttendeeModal() {
+      if (!activeMatch) return;
+      const count = activeMatch.attendees.length + 1;
+      document.getElementById('matchAttendeeNameInput').value = `طاولة #${count}`;
+      document.getElementById('matchAttendeeSeatsInput').value = 2;
+      document.getElementById('matchAttendeePriceInput').value = activeMatch.ticketPrice || 10000;
+      openModal('addMatchAttendeeModal');
+    }
+
+    function confirmAddMatchAttendee() {
+      if (!activeMatch) return;
+      const name = document.getElementById('matchAttendeeNameInput').value.trim() || `حاضر #${activeMatch.attendees.length + 1}`;
+      const seatsCount = Math.max(1, parseInt(document.getElementById('matchAttendeeSeatsInput').value) || 1);
+      const ticketPrice = parseFloat(document.getElementById('matchAttendeePriceInput').value) || activeMatch.ticketPrice || 10000;
+
+      const attendee = {
+        id: 'att_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        name: name,
+        seatsCount: seatsCount,
+        ticketPrice: ticketPrice,
+        orders: [],
+        isPaid: false,
+        paidAt: null,
+        isDebt: false
+      };
+
+      activeMatch.attendees.unshift(attendee);
+      persistMatches();
+      closeModal('addMatchAttendeeModal');
+      renderMatches();
+      showToast(`تم تسجيل (${name}) - ${seatsCount} مقاعد 🎟️`);
+    }
+
+    function changeMatchAttendeeSeats(attId, delta) {
+      if (!activeMatch) return;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att) return;
+      const newCount = att.seatsCount + delta;
+      if (newCount < 1) {
+        if (confirm(`هل تريد حذف الزبون/المجموعة (${att.name}) نهائياً؟`)) {
+          deleteMatchAttendee(attId);
+        }
+        return;
+      }
+      att.seatsCount = newCount;
+      persistMatches();
+      renderMatches();
+    }
+
+    function getMatchAttendeeTotal(att) {
+      const ticketsTotal = (att.seatsCount || 1) * (att.ticketPrice || 0);
+      const ordersTotal = (att.orders || []).reduce((sum, o) => sum + (o.price * o.quantity), 0);
+      return ticketsTotal + ordersTotal;
+    }
+
+    function openMatchAttendeeOrderModal(attId) {
+      if (!activeMatch) return;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att) return;
+
+      document.getElementById('matchOrderAttendeeId').value = attId;
+      document.getElementById('matchOrderModalTitle').textContent = `إضافة طلبات لمباراة (${att.name})`;
+      
+      const select = document.getElementById('matchOrderProductSelect');
+      select.innerHTML = '';
+      products.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.icon || '🥤'} ${p.name} - ${p.sellPrice.toLocaleString()} ${settings.currency}`;
+        select.appendChild(opt);
+      });
+
+      onMatchOrderProductSelected();
+      document.getElementById('matchOrderQtyInput').value = 1;
+      openModal('matchOrderModal');
+    }
+
+    function onMatchOrderProductSelected() {
+      const pId = document.getElementById('matchOrderProductSelect').value;
+      const prod = products.find(p => p.id === pId);
+      if (prod) {
+        document.getElementById('matchOrderUnitPriceInput').value = prod.sellPrice;
+      }
+    }
+
+    function confirmAddMatchAttendeeOrder() {
+      if (!activeMatch) return;
+      const attId = document.getElementById('matchOrderAttendeeId').value;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att) return;
+
+      const pId = document.getElementById('matchOrderProductSelect').value;
+      const prod = products.find(p => p.id === pId);
+      if (!prod) return;
+
+      const qty = Math.max(1, parseInt(document.getElementById('matchOrderQtyInput').value) || 1);
+      const unitPrice = parseFloat(document.getElementById('matchOrderUnitPriceInput').value) || prod.sellPrice;
+
+      if (!att.orders) att.orders = [];
+      const existing = att.orders.find(o => o.productId === pId && o.price === unitPrice);
+      if (existing) {
+        existing.quantity += qty;
+      } else {
+        att.orders.push({
+          productId: prod.id,
+          name: prod.name,
+          icon: prod.icon || '🥤',
+          price: unitPrice,
+          quantity: qty
+        });
+      }
+
+      // Deduct stock if it is a material product
+      if (prod.type !== 'service' && prod.stock > 0) {
+        prod.stock = Math.max(0, prod.stock - qty);
+        persistProducts();
+        renderProducts();
+      }
+
+      persistMatches();
+      closeModal('matchOrderModal');
+      renderMatches();
+      showToast(`تمت إضافة (${prod.name} ×${qty}) لفاتورة ${att.name} 🥤`);
+    }
+
+    function removeMatchAttendeeOrder(attId, orderIdx) {
+      if (!activeMatch) return;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att || !att.orders || !att.orders[orderIdx]) return;
+
+      const order = att.orders[orderIdx];
+      // Restore stock if material product
+      const prod = products.find(p => p.id === order.productId);
+      if (prod && prod.type !== 'service') {
+        prod.stock += order.quantity;
+        persistProducts();
+        renderProducts();
+      }
+
+      att.orders.splice(orderIdx, 1);
+      persistMatches();
+      renderMatches();
+      showToast('تم حذف الطلب من الفاتورة بنجاح! 🗑️');
+    }
+
+    function payMatchAttendee(attId) {
+      if (!activeMatch) return;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att) return;
+
+      const total = getMatchAttendeeTotal(att);
+      const ticketsTotal = (att.seatsCount || 1) * (att.ticketPrice || 0);
+      const ordersTotal = total - ticketsTotal;
+
+      att.isPaid = true;
+      att.isDebt = false;
+      att.paidAt = Date.now();
+
+      dailyData.gamesCash += ticketsTotal;
+      dailyData.buffetCash += ordersTotal;
+      logDailyOperation(`تذكرة مباراة: ${activeMatch.title} (${att.name} - ${att.seatsCount} مقاعد)`, total, 'income', `تذاكر: ${ticketsTotal} + طلبات: ${ordersTotal}`);
+
+      persistMatches();
+      persistDailyData();
+      renderMatches();
+      renderDailyOverview();
+      updateTopStats();
+      showToast(`تم قبض فاتورة (${att.name}) بقيمة ${total.toLocaleString()} ${settings.currency} نقداً! 💵`);
+    }
+
+    function unpayMatchAttendee(attId) {
+      if (!activeMatch) return;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att || !att.isPaid) return;
+
+      if (confirm(`هل تريد التراجع عن قبض فاتورة (${att.name}) وإعادتها كمعلقة؟`)) {
+        const total = getMatchAttendeeTotal(att);
+        const ticketsTotal = (att.seatsCount || 1) * (att.ticketPrice || 0);
+        const ordersTotal = total - ticketsTotal;
+
+        att.isPaid = false;
+        att.paidAt = null;
+
+        dailyData.gamesCash = Math.max(0, dailyData.gamesCash - ticketsTotal);
+        dailyData.buffetCash = Math.max(0, dailyData.buffetCash - ordersTotal);
+
+        persistMatches();
+        persistDailyData();
+        renderMatches();
+        renderDailyOverview();
+        updateTopStats();
+        showToast('تم التراجع عن القبض وإعادة الفاتورة كمعلقة ↩️');
+      }
+    }
+
+    function transferMatchAttendeeToDebt(attId) {
+      if (!activeMatch) return;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att) return;
+
+      const total = getMatchAttendeeTotal(att);
+      att.isDebt = true;
+      att.isPaid = false;
+
+      openAddDebtorModal();
+      document.getElementById('debtorNameInput').value = att.name;
+      document.getElementById('debtorAmountInput').value = total;
+      document.getElementById('debtorNoteInput').value = `تذكرة مباراة: ${activeMatch.title} (${att.seatsCount} مقاعد + طلبات)`;
+
+      persistMatches();
+      renderMatches();
+    }
+
+    function deleteMatchAttendee(attId) {
+      if (!activeMatch) return;
+      const idx = activeMatch.attendees.findIndex(a => a.id === attId);
+      if (idx !== -1) {
+        const att = activeMatch.attendees[idx];
+        if (confirm(`هل أنت متأكد من حذف (${att.name}) من قائمة حضور المباراة؟`)) {
+          activeMatch.attendees.splice(idx, 1);
+          persistMatches();
+          renderMatches();
+          showToast('تم حذف الحاضر من القائمة بنجاح! 🗑️');
+        }
+      }
+    }
+
+    function endMatchPrompt() {
+      if (!activeMatch) return;
+
+      const totalSeats = activeMatch.attendees.reduce((s, a) => s + (a.seatsCount || 1), 0);
+      const totalTickets = activeMatch.attendees.reduce((s, a) => s + ((a.seatsCount || 1) * (a.ticketPrice || 0)), 0);
+      const totalOrders = activeMatch.attendees.reduce((s, a) => s + (a.orders || []).reduce((os, o) => os + (o.price * o.quantity), 0), 0);
+      const grandTotal = totalTickets + totalOrders;
+      const collectedPaid = activeMatch.attendees.filter(a => a.isPaid).reduce((s, a) => s + getMatchAttendeeTotal(a), 0);
+      const unpaidRemaining = grandTotal - collectedPaid;
+
+      const msg = `هل أنت متأكد من إنهاء مباراة (${activeMatch.title}) وحفظ ملخصها بالأرشيف؟\n\n` +
+        `👥 إجمالي الحضور: ${totalSeats} شخص\n` +
+        `🎟️ إجمالي التذاكر: ${totalTickets.toLocaleString()} ${settings.currency}\n` +
+        `🥤 إجمالي الطلبات: ${totalOrders.toLocaleString()} ${settings.currency}\n` +
+        `💰 الإجمالي المطلوب: ${grandTotal.toLocaleString()} ${settings.currency}\n` +
+        `💵 المحصل نقداً: ${collectedPaid.toLocaleString()} ${settings.currency}\n` +
+        `⏳ المتبقي غير مدفوع: ${unpaidRemaining.toLocaleString()} ${settings.currency}`;
+
+      if (confirm(msg)) {
+        const archiveItem = {
+          id: activeMatch.id,
+          title: activeMatch.title,
+          tournament: activeMatch.tournament,
+          ticketPrice: activeMatch.ticketPrice,
+          startTime: activeMatch.startTime,
+          endTime: Date.now(),
+          dateStr: new Date().toLocaleDateString('ar-SY', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' }),
+          totalSeats: totalSeats,
+          totalTickets: totalTickets,
+          totalOrders: totalOrders,
+          grandTotal: grandTotal,
+          collectedPaid: collectedPaid,
+          unpaidRemaining: unpaidRemaining,
+          attendeesCount: activeMatch.attendees.length
+        };
+
+        matchArchives.unshift(archiveItem);
+        persistMatchArchives();
+
+        activeMatch = null;
+        persistMatches();
+        renderMatches();
+        showToast('تم إنهاء المباراة بنجاح وحفظها في أرشيف المباريات! 🏁');
+      }
+    }
+
+    function openMatchArchivesModal() {
+      const container = document.getElementById('matchArchivesList');
+      container.innerHTML = '';
+
+      if (!matchArchives || matchArchives.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:24px;">لا توجد مباريات مؤرشفة سابقة حتى الآن.</div>';
+      } else {
+        matchArchives.forEach((m, idx) => {
+          const card = document.createElement('div');
+          card.className = 'content-card';
+          card.style.marginBottom = '12px';
+          card.style.border = '1px solid var(--border-color)';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+              <div>
+                <h4 style="color:var(--text-gold); margin:0 0 2px; font-size:1.1rem;">⚽ ${escapeHtml(m.title)}</h4>
+                <div style="font-size:0.8rem; color:var(--text-muted);">${m.tournament || 'بث مباشر'} - ${m.dateStr}</div>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="deleteMatchArchivePrompt(${idx})" title="حذف من الأرشيف" style="padding:2px 8px; font-size:0.75rem;">
+                🗑️ حذف
+              </button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px; margin-top:8px; font-size:0.82rem;">
+              <div style="background:var(--bg-surface); padding:6px; border-radius:4px;">
+                <span style="color:var(--text-muted); font-size:0.72rem;">👥 الحضور:</span>
+                <div style="font-weight:700;">${m.totalSeats} شخص</div>
+              </div>
+              <div style="background:var(--bg-surface); padding:6px; border-radius:4px;">
+                <span style="color:var(--text-muted); font-size:0.72rem;">🎟️ التذاكر:</span>
+                <div style="font-weight:700; color:var(--success);">${(m.totalTickets || 0).toLocaleString()} ${settings.currency}</div>
+              </div>
+              <div style="background:var(--bg-surface); padding:6px; border-radius:4px;">
+                <span style="color:var(--text-muted); font-size:0.72rem;">🥤 الطلبات:</span>
+                <div style="font-weight:700; color:var(--info);">${(m.totalOrders || 0).toLocaleString()} ${settings.currency}</div>
+              </div>
+              <div style="background:var(--bg-surface); padding:6px; border-radius:4px;">
+                <span style="color:var(--text-muted); font-size:0.72rem;">💰 الإجمالي:</span>
+                <div style="font-weight:800; color:var(--text-gold);">${(m.grandTotal || 0).toLocaleString()} ${settings.currency}</div>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      openModal('matchArchivesModal');
+    }
+
+    function deleteMatchArchivePrompt(idx) {
+      if (confirm('هل أنت متأكد من حذف هذا السجل نهائياً من أرشيف المباريات؟')) {
+        matchArchives.splice(idx, 1);
+        persistMatchArchives();
+        openMatchArchivesModal();
+        showToast('تم حذف السجل من الأرشيف بنجاح! 🗑️');
+      }
+    }
+
+    function filterMatchAttendees() {
+      const q = (document.getElementById('matchAttendeeSearchInput').value || '').trim().toLowerCase();
+      renderMatches(q);
+    }
+
+    function renderMatches(searchQuery = '') {
+      const noMatchView = document.getElementById('noActiveMatchView');
+      const activeView = document.getElementById('activeMatchView');
+      const activeBadge = document.getElementById('activeMatchBadge');
+      const headerStartBtn = document.getElementById('btnStartMatchHeader');
+
+      if (!activeMatch) {
+        if (noMatchView) noMatchView.style.display = 'block';
+        if (activeView) activeView.style.display = 'none';
+        if (activeBadge) activeBadge.style.display = 'none';
+        if (headerStartBtn) headerStartBtn.style.display = 'inline-flex';
+        return;
+      }
+
+      if (noMatchView) noMatchView.style.display = 'none';
+      if (activeView) activeView.style.display = 'block';
+      if (activeBadge) activeBadge.style.display = 'inline-block';
+      if (headerStartBtn) headerStartBtn.style.display = 'none';
+
+      document.getElementById('activeMatchTitleText').textContent = activeMatch.title;
+      document.getElementById('activeMatchTournamentBadge').textContent = activeMatch.tournament || 'بث مباشر';
+      document.getElementById('activeMatchStartTimeText').textContent = activeMatch.startTimeFormatted || '';
+      document.getElementById('activeMatchTicketPriceText').textContent = `${(activeMatch.ticketPrice || 10000).toLocaleString()} ${settings.currency}`;
+
+      // Calculate totals
+      let totalSeats = 0;
+      let totalTickets = 0;
+      let totalOrders = 0;
+      let totalPaidCash = 0;
+      let totalUnpaid = 0;
+
+      activeMatch.attendees.forEach(a => {
+        const seats = a.seatsCount || 1;
+        const tCost = seats * (a.ticketPrice || activeMatch.ticketPrice || 10000);
+        const oCost = (a.orders || []).reduce((s, o) => s + (o.price * o.quantity), 0);
+        const tot = tCost + oCost;
+
+        totalSeats += seats;
+        totalTickets += tCost;
+        totalOrders += oCost;
+        if (a.isPaid) totalPaidCash += tot;
+        else totalUnpaid += tot;
+      });
+
+      document.getElementById('matchStatSeatsCount').textContent = totalSeats;
+      document.getElementById('matchStatTicketsTotal').textContent = `${totalTickets.toLocaleString()} ${settings.currency}`;
+      document.getElementById('matchStatOrdersTotal').textContent = `${totalOrders.toLocaleString()} ${settings.currency}`;
+      document.getElementById('matchStatPaidCash').textContent = `${totalPaidCash.toLocaleString()} ${settings.currency}`;
+      document.getElementById('matchStatUnpaidDebt').textContent = `${totalUnpaid.toLocaleString()} ${settings.currency}`;
+
+      // Render Attendee Cards
+      const container = document.getElementById('matchAttendeesContainer');
+      container.innerHTML = '';
+
+      let list = activeMatch.attendees;
+      if (searchQuery) {
+        list = list.filter(a => a.name.toLowerCase().includes(searchQuery));
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">لا يوجد حضور مسجل بعد في هذه المباراة. انقر على "شخص سريع" أو "إضافة طاولة" لبدء التسجيل! 🎟️</div>';
+        return;
+      }
+
+      list.forEach(att => {
+        const ticketsCost = (att.seatsCount || 1) * (att.ticketPrice || activeMatch.ticketPrice || 10000);
+        const ordersCost = (att.orders || []).reduce((s, o) => s + (o.price * o.quantity), 0);
+        const grandTotal = ticketsCost + ordersCost;
+
+        let ordersHtml = '<div style="color:var(--text-muted); font-size:0.75rem; margin-top:2px;">لا توجد طلبات إضافية</div>';
+        if (att.orders && att.orders.length > 0) {
+          ordersHtml = '<div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">' +
+            att.orders.map((o, idx) => `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:3px 6px; border-radius:4px; font-size:0.75rem;">
+                <span>${o.icon || '🥤'} ${escapeHtml(o.name)} ×${o.quantity}</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <strong style="color:var(--info);">${(o.price * o.quantity).toLocaleString()}</strong>
+                  <button onclick="removeMatchAttendeeOrder('${att.id}', ${idx})" title="حذف الطلب" style="background:transparent; border:none; color:var(--danger); cursor:pointer; padding:0 2px;">✕</button>
+                </div>
+              </div>
+            `).join('') +
+            '</div>';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'content-card';
+        card.style.border = att.isPaid ? '1px solid rgba(16,185,129,0.4)' : (att.isDebt ? '1px solid rgba(245,158,11,0.4)' : '1px solid var(--border-color)');
+        card.style.background = att.isPaid ? 'linear-gradient(180deg, var(--bg-card) 0%, rgba(16,185,129,0.04) 100%)' : 'var(--bg-card)';
+        
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+            <div>
+              <div style="font-weight:700; font-size:1.05rem; color:var(--text-gold);">${escapeHtml(att.name)}</div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">
+                تذكرة: ${(att.ticketPrice || activeMatch.ticketPrice || 10000).toLocaleString()} ${settings.currency} للشخص
+              </div>
+            </div>
+            <div>
+              ${att.isPaid ? '<span class="badge badge-success">✅ مدفوع نقداً</span>' : (att.isDebt ? '<span class="badge badge-warning">📝 محول للدين</span>' : '<span class="badge badge-danger">🔴 غير مدفوع</span>')}
+            </div>
+          </div>
+
+          <!-- Seats Count Controls -->
+          <div style="background:var(--bg-surface); padding:6px 10px; border-radius:var(--radius-sm); display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:0.82rem;">عدد المقاعد / الحضور:</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn btn-secondary btn-sm" onclick="changeMatchAttendeeSeats('${att.id}', -1)" style="padding:2px 8px; font-weight:800; font-size:0.85rem;">-</button>
+              <span style="font-weight:800; font-size:1.1rem; color:var(--text-main); min-width:24px; text-align:center;">${att.seatsCount}</span>
+              <button class="btn btn-secondary btn-sm" onclick="changeMatchAttendeeSeats('${att.id}', 1)" style="padding:2px 8px; font-weight:800; font-size:0.85rem;">+</button>
+            </div>
+          </div>
+
+          <!-- Orders Section -->
+          <div style="background:var(--bg-surface); padding:8px; border-radius:var(--radius-sm); margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.8rem; font-weight:700;">المشروبات والطلبات:</span>
+              <button class="btn btn-secondary btn-sm" onclick="openMatchAttendeeOrderModal('${att.id}')" style="font-size:0.72rem; padding:2px 6px;">
+                + إضافة طلب
+              </button>
+            </div>
+            ${ordersHtml}
+          </div>
+
+          <!-- Total Bill -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed var(--border-color); padding-top:8px; margin-bottom:10px;">
+            <div>
+              <span style="font-size:0.82rem; color:var(--text-muted);">إجمالي الفاتورة:</span>
+              <div style="font-size:0.72rem; color:var(--text-muted);">(تذاكر: ${ticketsCost.toLocaleString()} + طلبات: ${ordersCost.toLocaleString()})</div>
+            </div>
+            <span style="font-size:1.25rem; font-weight:800; color:var(--text-gold);">${grandTotal.toLocaleString()} ${settings.currency}</span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display:flex; gap:6px;">
+            ${!att.isPaid ? `
+              <button class="btn btn-success btn-sm flex-1" onclick="payMatchAttendee('${att.id}')" style="font-weight:700;">
+                💵 قبض كاش
+              </button>
+              <button class="btn btn-secondary btn-sm flex-1" onclick="transferMatchAttendeeToDebt('${att.id}')">
+                📝 دين
+              </button>
+            ` : `
+              <button class="btn btn-secondary btn-sm flex-1" onclick="unpayMatchAttendee('${att.id}')" title="إلغاء حالة الدفع وإعادتها كمعلقة">
+                ↩️ تراجع عن الدفع
+              </button>
+            `}
+            <button class="btn btn-danger btn-sm" onclick="deleteMatchAttendee('${att.id}')" title="حذف الحاضر" style="padding:4px 8px; font-size:0.85rem;">
+              🗑️
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+
+
+    /* ==========================================================================
+       PRODUCT UNIT MODES (بالقطعة / بالوزن كيلوغرام / لعبة حرة بدون تكلفة)
+       ========================================================================== */
+    function setProductUnitMode(mode) {
+      document.getElementById('productUnitModeInput').value = mode;
+      ['btnUnitPiece', 'btnUnitWeight', 'btnUnitGame'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.className = 'btn btn-secondary btn-sm';
+      });
+
+      const stockSection = document.getElementById('productStockFieldsSection');
+      const priceLabel = document.getElementById('productPriceLabel');
+      const stockLabel = document.getElementById('productStockLabel');
+      const thresholdLabel = document.getElementById('productThresholdLabel');
+
+      if (mode === 'game') {
+        const b = document.getElementById('btnUnitGame');
+        if (b) b.className = 'btn btn-gold btn-sm';
+        if (stockSection) stockSection.style.display = 'none';
+        if (priceLabel) priceLabel.textContent = 'تسعيرة اللعبة / الجلسة للزبون (ل.س):';
+      } else if (mode === 'kg') {
+        const b = document.getElementById('btnUnitWeight');
+        if (b) b.className = 'btn btn-gold btn-sm';
+        if (stockSection) stockSection.style.display = 'block';
+        if (priceLabel) priceLabel.textContent = 'سعر مبيع الكيلوغرام الواحد (ل.س/كغ):';
+        if (stockLabel) stockLabel.textContent = 'الوزن المتوفر بالمخزن (بالكيلو، مثال: 5 أو 2.5):';
+        if (thresholdLabel) thresholdLabel.textContent = 'حد تنبيه الوزن (مثال: 0.5 كغ):';
+      } else {
+        const b = document.getElementById('btnUnitPiece');
+        if (b) b.className = 'btn btn-gold btn-sm';
+        if (stockSection) stockSection.style.display = 'block';
+        if (priceLabel) priceLabel.textContent = 'سعر المبيع للقطعة / العلبة (ل.س):';
+        if (stockLabel) stockLabel.textContent = 'الكمية المتوفرة بالمخزن (بالقطعة):';
+        if (thresholdLabel) thresholdLabel.textContent = 'حد تنبيه قرب النفاد (بالقطع):';
+      }
+    }
+
+</script>
   <!-- Keyboard Shortcuts Catalog Modal -->
   <div id="shortcutsCatalogModal" class="modal-overlay">
     <div class="modal-card" style="max-width: 620px;">
@@ -4790,20 +6046,24 @@
               <div class="shortcut-keys"><kbd>1</kbd> أو <kbd>F1</kbd></div>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-desc">الانتقال لشاشة مبيعات أخرى والبوفيه</span>
+              <span class="shortcut-desc">الانتقال لحضور وتذاكر المباريات</span>
               <div class="shortcut-keys"><kbd>2</kbd> أو <kbd>F2</kbd></div>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-desc">الانتقال لدفتر الديون الذكي</span>
+              <span class="shortcut-desc">الانتقال للمبيعات والمخزون والألعاب</span>
               <div class="shortcut-keys"><kbd>3</kbd> أو <kbd>F3</kbd></div>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-desc">الانتقال للصندوق المحاسبي والمالية</span>
+              <span class="shortcut-desc">الانتقال لدفتر الديون الذكي</span>
               <div class="shortcut-keys"><kbd>4</kbd> أو <kbd>F4</kbd></div>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-desc">الانتقال لشاشة الإعدادات والنظام</span>
+              <span class="shortcut-desc">الانتقال للصندوق واليومية المالية</span>
               <div class="shortcut-keys"><kbd>5</kbd> أو <kbd>F5</kbd></div>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">الانتقال للإعدادات وخلفية التطبيق</span>
+              <div class="shortcut-keys"><kbd>6</kbd> أو <kbd>F6</kbd></div>
             </div>
           </div>
         </div>
@@ -4862,6 +6122,120 @@
           <button class="btn btn-gold" onclick="closeModal('shortcutsCatalogModal')">فهمت الاختصارات ✔️</button>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCH MODAL 1: New Match Setup Modal -->
+  <div id="newMatchModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚽ فتح استقبال وبث مباراة جديدة</h3>
+        <button class="btn-icon btn-sm" onclick="closeModal('newMatchModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">عنوان المباراة والطرفين:</label>
+          <input type="text" id="newMatchTitleInput" class="input-field" placeholder="مثال: ريال مدريد ✘ برشلونة">
+        </div>
+        <div class="form-group">
+          <label class="form-label">البطولة / المناسبة:</label>
+          <input type="text" id="newMatchTournamentInput" class="input-field" placeholder="مثال: دوري أبطال أوروبا، الكلاسيكو، الدوري الإنجليزي...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">تسعيرة حضور الشخص الافتراضية (التذكرة):</label>
+          <input type="number" id="newMatchTicketPriceInput" class="input-field" placeholder="مثال: 10000">
+        </div>
+        <div class="mt-4" style="display:flex; gap:10px;">
+          <button class="btn btn-gold flex-1" onclick="confirmStartMatch()">
+            🚀 بدء البث واستقبال الحضور الآن
+          </button>
+          <button class="btn btn-secondary" onclick="closeModal('newMatchModal')">
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCH MODAL 2: Add Attendee / Table Modal -->
+  <div id="addMatchAttendeeModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>👥 تسجيل زبون أو طاولة للمباراة</h3>
+        <button class="btn-icon btn-sm" onclick="closeModal('addMatchAttendeeModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">اسم الزبون أو رقم الطاولة:</label>
+          <input type="text" id="matchAttendeeNameInput" class="input-field" placeholder="مثال: أحمد الحمصي، أو طاولة 4">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="form-group">
+            <label class="form-label">عدد المقاعد / الأشخاص:</label>
+            <input type="number" id="matchAttendeeSeatsInput" class="input-field" value="1" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">تسعيرة الشخص الواحد:</label>
+            <input type="number" id="matchAttendeePriceInput" class="input-field" placeholder="10000">
+          </div>
+        </div>
+        <div class="mt-4" style="display:flex; gap:10px;">
+          <button class="btn btn-gold flex-1" onclick="confirmAddMatchAttendee()">
+            + إضافة وتسجيل التذاكر
+          </button>
+          <button class="btn btn-secondary" onclick="closeModal('addMatchAttendeeModal')">
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCH MODAL 3: Add Order / Drink to Match Attendee -->
+  <div id="matchOrderModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="matchOrderModalTitle">إضافة طلبات لمباراة الزبون</h3>
+        <button class="btn-icon btn-sm" onclick="closeModal('matchOrderModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="matchOrderAttendeeId">
+        <div class="form-group">
+          <label class="form-label">اختر الصنف أو المشروب أو الأركيلة:</label>
+          <select id="matchOrderProductSelect" class="input-field" onchange="onMatchOrderProductSelected()"></select>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="form-group">
+            <label class="form-label">الكمية:</label>
+            <input type="number" id="matchOrderQtyInput" class="input-field" value="1" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">السعر الإفرادي:</label>
+            <input type="number" id="matchOrderUnitPriceInput" class="input-field" placeholder="0">
+          </div>
+        </div>
+        <div class="mt-4" style="display:flex; gap:10px;">
+          <button class="btn btn-gold flex-1" onclick="confirmAddMatchAttendeeOrder()">
+            + إضافة الطلب للفاتورة
+          </button>
+          <button class="btn btn-secondary" onclick="closeModal('matchOrderModal')">
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCH MODAL 4: Match Archives History Modal -->
+  <div id="matchArchivesModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>📋 سجل وأرشيف المباريات السابقة</h3>
+        <button class="btn-icon btn-sm" onclick="closeModal('matchArchivesModal')">✕</button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <div id="matchArchivesList"></div>
       </div>
     </div>
   </div>
