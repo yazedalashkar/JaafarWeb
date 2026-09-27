@@ -1342,11 +1342,30 @@
       </div>
 
       <div class="content-card">
-        <h3 class="text-gold" style="margin-bottom: 8px;">💾 النسخ الاحتياطي ونقل البيانات</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-          احفظ نسخة احتياطية من كل سجلاتك وأجهزتك والديون والبوفيه بملف واحد للرجوع إليها بأي وقت.
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 class="text-gold" style="margin:0;">💾 نظام الحفظ المزدوج والنسخ الاحتياطي</h3>
+          <span class="badge badge-success" style="font-size:0.75rem;">تلقائي ومحمي</span>
+        </div>
+        
+        <!-- Live Storage Status Banner -->
+        <div id="storageStatusBadge" style="background:var(--bg-surface); border:1px solid rgba(212,175,55,0.3); border-radius:var(--radius-md); padding:10px 14px; font-size:0.84rem; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+          ⚡ <strong>حفظ آمن نشط:</strong> يتم حفظ كل حركة تلقائياً في ذاكرة المتصفح وعلى القرص.
+        </div>
+
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height:1.6;">
+          يتم حفظ بياناتك تلقائياً في ذاكرة المتصفح المشفرة وفي ملف <code>data.json</code> عند التشغيل عبر <code>run.bat</code>. يمكنك أيضاً ربط ملف حفظ مخصص أو تصدير نسخة خارجية لأي فلاشة.
         </p>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom:12px;">
+          <button class="btn btn-secondary btn-sm" onclick="linkDiskFileHandle()" title="ربط ملف حفظ حقيقي على سطح المكتب بدون سيرفر عبر متصفح Chrome/Edge">
+            🔗 ربط ملف حفظ على القرص
+          </button>
+          
+          <button class="btn btn-gold btn-sm" onclick="exportBackupData()">
+            📥 تصدير نسخة احتياطية (JSON)
+          </button>
+          
+          <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
           <button class="btn btn-secondary" onclick="exportBackupData()">
             📥 تصدير نسخة احتياطية (JSON)
           </button>
@@ -2196,6 +2215,147 @@
     let titleInterval = null;
     const originalDocumentTitle = document.title;
 
+    
+    // --- DUAL-SYNC STORAGE ENGINE (Browser LocalStorage + Physical Disk File data.json) ---
+    let diskSyncTimeout = null;
+    let linkedFileHandle = null;
+
+    function getFullSystemPayload() {
+      return {
+        app: 'ساحة الأساطير - بلايستيشن وسمارت كاشير',
+        version: '7.0',
+        lastUpdated: new Date().toISOString(),
+        settings: settings,
+        devices: devices,
+        debtors: debtors,
+        products: products,
+        templates: templates,
+        dailyData: dailyData,
+        archives: archives
+      };
+    }
+
+    function scheduleDiskSync() {
+      safeStorage.setItem('legends_last_sync', new Date().toISOString());
+
+      if (diskSyncTimeout) clearTimeout(diskSyncTimeout);
+      diskSyncTimeout = setTimeout(async () => {
+        const payload = getFullSystemPayload();
+
+        // 1. Sync to local server file data.json if running via http://localhost:8080
+        if (window.location.protocol.startsWith('http')) {
+          try {
+            const resp = await fetch('/api/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (resp.ok) {
+              updateSyncStatusUI('synced_server');
+            }
+          } catch (e) {
+            updateSyncStatusUI('local_only');
+          }
+        }
+
+        // 2. Sync to linked file handle if user granted File System Access
+        if (linkedFileHandle) {
+          try {
+            const writable = await linkedFileHandle.createWritable();
+            await writable.write(JSON.stringify(payload, null, 2));
+            await writable.close();
+            updateSyncStatusUI('synced_file');
+          } catch (e) {
+            console.warn('File handle write failed:', e);
+          }
+        }
+      }, 350);
+    }
+
+    async function linkDiskFileHandle() {
+      if (!('showSaveFilePicker' in window)) {
+        alert('متصفحك الحالي لا يدعم ميزة الربط المباشر بملف على القرص بدون سيرفر. ننصح باستخدام متصفح Chrome أو Edge على اللابتوب، أو تشغيل ملف run.bat المرفق الذي يحفظ تلقائياً في data.json.');
+        return;
+      }
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'ساحة_الاساطير_بيانات.json',
+          types: [{
+            description: 'ملف بيانات JSON',
+            accept: { 'application/json': ['.json'] }
+          }]
+        });
+        linkedFileHandle = handle;
+        scheduleDiskSync();
+        alert('تم ربط ملف الحفظ بنجاح! سيتم الآن كتابة وحفظ كل حركة وتعديل في هذا الملف على قرص اللابتوب مباشرة وبشكل مستمر. ✅');
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error(err);
+      }
+    }
+
+    function updateSyncStatusUI(status) {
+      const el = document.getElementById('storageStatusBadge');
+      if (!el) return;
+      if (status === 'synced_server') {
+        el.innerHTML = '🟢 <strong>حفظ مزدوج نشط:</strong> متزامن لحظياً مع ملف القرص <code>data.json</code> وذاكرة المتصفح';
+        el.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        el.style.color = 'var(--success)';
+      } else if (status === 'synced_file') {
+        el.innerHTML = '🟢 <strong>حفظ مزدوج نشط:</strong> متزامن مع الملف المحدد على القرص وذاكرة المتصفح';
+        el.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        el.style.color = 'var(--success)';
+      } else {
+        el.innerHTML = '⚡ <strong>حفظ آمن نشط:</strong> محفوظ تلقائياً في ذاكرة المتصفح المشفرة على القرص';
+        el.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+        el.style.color = 'var(--text-gold)';
+      }
+    }
+
+    async function checkServerDiskSyncOnStartup() {
+      if (window.location.protocol.startsWith('http')) {
+        try {
+          const resp = await fetch('/api/load');
+          if (resp.ok) {
+            const diskData = await resp.json();
+            if (diskData && diskData.lastUpdated) {
+              const localSync = safeStorage.getItem('legends_last_sync');
+              // If disk file has newer data than local storage or local storage is freshly empty
+              if (!localSync || new Date(diskData.lastUpdated) > new Date(localSync)) {
+                if (diskData.settings) settings = diskData.settings;
+                if (diskData.devices) devices = diskData.devices;
+                if (diskData.debtors) debtors = diskData.debtors;
+                if (diskData.products) products = diskData.products;
+                if (diskData.templates) templates = diskData.templates;
+                if (diskData.dailyData) dailyData = diskData.dailyData;
+                if (diskData.archives) archives = diskData.archives;
+
+                // Sync to local storage
+                persistDevices();
+                persistDebtors();
+                persistProducts();
+                persistTemplates();
+                safeStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+                safeStorage.setItem(STORAGE_KEY_DAILY, JSON.stringify(dailyData));
+                safeStorage.setItem(STORAGE_KEY_ARCHIVES, JSON.stringify(archives));
+
+                renderDevices();
+                renderDebtors();
+                renderProducts();
+                renderTemplates();
+                renderDailyOverview();
+                updateTopStats();
+      checkServerDiskSyncOnStartup();
+                console.log('Restored latest state from physical disk file data.json');
+              }
+              updateSyncStatusUI('synced_server');
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+      updateSyncStatusUI('local_only');
+    }
+
     function initApp() {
       loadSettings();
       loadDevices();
@@ -2212,6 +2372,7 @@
       renderTemplates();
       renderDailyOverview();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
 
       onGlobalTick(); // Sync timers immediately on page load/refresh
       setInterval(onGlobalTick, 1000);
@@ -2232,6 +2393,7 @@
     }
 
     function saveSettings() {
+      scheduleDiskSync();
       settings.priceSingle = parseFloat(document.getElementById('settingPriceSingle').value) || 5000;
       settings.priceMulti = parseFloat(document.getElementById('settingPriceMulti').value) || 8000;
       settings.currency = document.getElementById('settingCurrency').value.trim() || 'ل.س';
@@ -2239,6 +2401,7 @@
       showToast('تم حفظ التسعيرة الافتراضية بنجاح! ✅');
       renderDevices();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
     }
 
     function loadDevices() {
@@ -2249,6 +2412,7 @@
     }
 
     function persistDevices() {
+      scheduleDiskSync();
       safeStorage.setItem(STORAGE_KEY_DEVICES, JSON.stringify(devices));
     }
 
@@ -2260,6 +2424,7 @@
     }
 
     function persistDebtors() {
+      scheduleDiskSync();
       safeStorage.setItem(STORAGE_KEY_DEBTORS, JSON.stringify(debtors));
     }
 
@@ -2278,6 +2443,7 @@
     }
 
     function persistProducts() {
+      scheduleDiskSync();
       safeStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
     }
 
@@ -2289,6 +2455,7 @@
     }
 
     function persistTemplates() {
+      scheduleDiskSync();
       safeStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(templates));
     }
 
@@ -2344,6 +2511,7 @@
       persistDailyData();
       renderDailyOverview();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
     }
 
     /* Web Audio API */
@@ -2874,6 +3042,7 @@
       closeModal('startSessionModal');
       renderDevices();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
       showToast(`بدأت جلسة (${playerName}) على ${device.name}! 🎮`);
     }
 
@@ -3237,6 +3406,7 @@
       closeModal('endSessionModal');
       renderDevices();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
       showToast(`تم قبض الفاتورة (${totalCost.toLocaleString()} ${settings.currency}) نقداً! 💵`);
     }
 
@@ -3263,6 +3433,7 @@
       persistDevices();
       renderDevices();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
     }
 
     /* Device Edit / Add / Remove */
@@ -3320,6 +3491,7 @@
       closeModal('addDeviceModal');
       renderDevices();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
       showToast(`تمت إضافة ${name} بنجاح! 🎉`);
     }
 
@@ -3331,6 +3503,7 @@
         persistDevices();
         renderDevices();
         updateTopStats();
+      checkServerDiskSyncOnStartup();
         showToast('تم حذف الجهاز.');
       }
     }
@@ -3628,6 +3801,7 @@
       closeModal('quickBuffetSaleModal');
       renderProducts();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
     }
 
     function quickSellSingleProduct(productId) {
@@ -3641,6 +3815,7 @@
         logDailyOperation(`بيع سريع: ${p.name}`, p.sellPrice, 'income', 'كاش فوري');
         renderProducts();
         updateTopStats();
+      checkServerDiskSyncOnStartup();
         showToast(`تم بيع 1 ${p.name} بنجاح! 🥤`);
       }
     }
@@ -3808,6 +3983,7 @@
       closeModal('addDebtorModal');
       renderDebtors();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
       showToast(`تم تسجيل دين (${amount.toLocaleString()} ${settings.currency}) على ${name}! ✍️`);
     }
 
@@ -3873,6 +4049,7 @@
         openDebtorHistory(debtorId);
         renderDebtors();
         updateTopStats();
+      checkServerDiskSyncOnStartup();
         showToast('تم حذف الحركة.');
       }
     }
@@ -3937,6 +4114,7 @@
       openDebtorHistory(debtorId);
       renderDebtors();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
       showToast(`تم قبض دفعة (${amount.toLocaleString()} ${settings.currency}) وإيداعها بالصندوق! 🤝`);
     }
 
@@ -3970,6 +4148,7 @@
       openDebtorHistory(debtorId);
       renderDebtors();
       updateTopStats();
+      checkServerDiskSyncOnStartup();
       showToast(`تمت إضافة دين (${amount.toLocaleString()} ${settings.currency}).`);
     }
 
@@ -3984,6 +4163,7 @@
         closeModal('debtorHistoryModal');
         renderDebtors();
         updateTopStats();
+      checkServerDiskSyncOnStartup();
         showToast('تم حذف الزبون وسجله نهائياً.');
       }
     }
@@ -4071,6 +4251,7 @@
 
       closeModal('expenseModal');
       updateTopStats();
+      checkServerDiskSyncOnStartup();
       showToast(`تم تسجيل مصروف بقيمة (${amount.toLocaleString()} ${settings.currency})! 💸`);
     }
 
@@ -4104,6 +4285,7 @@
 
         renderDailyOverview();
         updateTopStats();
+      checkServerDiskSyncOnStartup();
         showToast('تم تقفيل اليومية وحفظها في الأرشيف بنجاح! 🔒');
       }
     }
@@ -4305,6 +4487,7 @@
               renderTemplates();
               renderDailyOverview();
               updateTopStats();
+      checkServerDiskSyncOnStartup();
               showToast('تم استيراد كافة البيانات بنجاح تام! 🔄');
             }
           } else {
