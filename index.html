@@ -24,6 +24,23 @@
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230d0f14' stroke='%23d4af37' stroke-width='4'/%3E%3Cpath d='M30 38h40c8 0 15 7 15 15v14c0 10-8 18-18 18-8 0-14-5-17-11l-4-9H44l-4 9c-3 6-9 11-17 11-10 0-18-8-18-18V53c0-8 7-15 15-15z' fill='%23d4af37'/%3E%3Ccircle cx='73' cy='52' r='4' fill='%230d0f14'/%3E%3Ccircle cx='65' cy='60' r='4' fill='%230d0f14'/%3E%3Crect x='24' y='49' width='14' height='5' rx='2' fill='%230d0f14'/%3E%3Crect x='28.5' y='44.5' width='5' height='14' rx='2' fill='%230d0f14'/%3E%3C/svg%3E">
 
   <style>
+    /* Local Offline Font Loading Support */
+    @font-face {
+      font-family: 'Cairo';
+      src: url('fonts/cairo.woff2') format('woff2'),
+           url('fonts/cairo.ttf') format('truetype'),
+           url('cairo.ttf') format('truetype');
+      font-weight: 400 900;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Tajawal';
+      src: url('fonts/tajawal.woff2') format('woff2'),
+           url('fonts/tajawal.ttf') format('truetype'),
+           url('tajawal.ttf') format('truetype');
+      font-weight: 400 900;
+      font-display: swap;
+    }
 
     :root {
       --gold-primary: #D4AF37;
@@ -47,7 +64,7 @@
       --radius-full: 9999px;
       
       --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Arabic', 'Cairo', Tahoma, sans-serif;
+      --font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Arabic', Tahoma, sans-serif;
     }
 
     [data-theme="dark"] {
