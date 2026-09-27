@@ -1165,6 +1165,11 @@
     </div>
 
     <div class="header-actions">
+      <!-- Background Settings Quick Access -->
+      <button class="btn-icon" title="تخصيص خلفية ومظهر التطبيق" onclick="goToBackgroundSettings()" style="font-size:1.15rem;">
+        🎨
+      </button>
+
       <!-- Theme Switcher -->
       <button id="themeToggleBtn" class="btn-icon" title="تبديل الوضع الليلي / الفاتح" onclick="toggleTheme()">
         <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1440,6 +1445,11 @@
             <div style="font-size:0.8rem; color:var(--text-muted);">💸 المصاريف العامة اليومية:</div>
             <div id="dailyExpensesTotal" style="font-size:1.3rem; font-weight:800; color:var(--danger);">0 ل.س</div>
           </div>
+
+          <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-md); border:1.5px solid rgba(16,185,129,0.4);">
+            <div style="font-size:0.8rem; color:var(--text-muted);">📱 مقبوضات محفظة شام كاش:</div>
+            <div id="dailyShamCashTotal" style="font-size:1.3rem; font-weight:800; color:#10b981;">0 ل.س</div>
+          </div>
         </div>
 
         <div style="background:var(--gold-glow); border:1px solid var(--gold-primary); padding:14px 18px; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center;">
@@ -1489,6 +1499,90 @@
           </button>
         </div>
       </div>
+
+      <!-- 🎨 Card: Background & Appearance Customizer -->
+      <div id="backgroundCustomizerCard" class="content-card" style="border: 1.5px solid rgba(212,175,55,0.4); background: linear-gradient(135deg, var(--bg-card) 0%, rgba(212,175,55,0.05) 100%);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.4rem;">🎨</span>
+            <div>
+              <h3 class="text-gold" style="margin:0; font-size:1.15rem;">خلفية ومظهر التطبيق (لون أو صورة مخصصة)</h3>
+              <p style="font-size:0.8rem; color:var(--text-muted); margin:0;">خصص خلفية الشاشة لتغطي 100% بدون فراغات، وتُحفظ دائماً على الجهاز</p>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="resetCustomBackground()" title="الرجوع للوضع التلقائي المتوافق مع الفاتح والداكن">
+            🔄 استعادة الخلفية التلقائية
+          </button>
+        </div>
+
+        <!-- Option 1: Default / Auto Theme Mode -->
+        <div style="background:var(--bg-surface); padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div>
+            <div style="font-weight:700; font-size:0.88rem; color:var(--text-main);">الخلفية التلقائية المتوافقة مع النظام ☀️ / 🌙</div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">تتحول تلقائياً إلى فاتحة عند تشغيل الوضع الفاتح، وإلى سوداء ذهبية عند تشغيل الوضع الليلي.</div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="resetCustomBackground()">
+            تفعيل الوضع التلقائي
+          </button>
+        </div>
+
+        <!-- Option 2: Luxury Preset Colors -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight:700;">أو اختر لون خلفية داكن فخم وثابت:</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="setPresetBgColor('#040507')" style="display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#040507; border:1px solid #71717a;"></span>
+              كربوني فاحم
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="setPresetBgColor('#070b14')" style="display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#070b14; border:1px solid #3b82f6;"></span>
+              أزرق ليلي فاخر
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="setPresetBgColor('#14070e')" style="display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#14070e; border:1px solid #ec4899;"></span>
+              عنابي ملكي
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="setPresetBgColor('#07120a')" style="display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#07120a; border:1px solid #10b981;"></span>
+              زيتي زمردي
+            </button>
+          </div>
+        </div>
+
+        <!-- Option 3: Custom Color Picker -->
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label">أو اختر درجة لون مخصصة بحرية:</label>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <input type="color" id="customBgColorPicker" onchange="handleCustomBgColorChange(this.value)" style="width:48px; height:38px; border:none; border-radius:6px; cursor:pointer; background:transparent;">
+            <span id="customBgColorHexText" style="font-size:0.85rem; color:var(--text-muted); font-family:monospace;">#0d0f14</span>
+          </div>
+        </div>
+
+        <!-- Option 4: Custom Image Upload from Device -->
+        <div class="form-group" style="margin-top:14px; border-top:1px dashed var(--border-color); padding-top:14px;">
+          <label class="form-label" style="font-weight:700;">🖼️ رفع صورة خلفية خاصة من اللابتوب / الجهاز:</label>
+          <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
+            تتناسب الصورة تلقائياً (Cover) بدون أي فراغات علوية أو سفلية أو جانبية، مع طبقة تظليل ذكية لضمان وضوح وقراءة النصوص والأرقام.
+          </p>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <label class="btn btn-gold" style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:10px 20px; font-weight:700;">
+              <span>📁 اختيار صورة من اللابتوب...</span>
+              <input type="file" id="bgImageFileInput" accept="image/*" onchange="handleBgImageUpload(event)" style="display:none;">
+            </label>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="resetCustomBackground()">
+              إلغاء الصورة والرجوع للتلقائي
+            </button>
+          </div>
+          <div id="bgImagePreviewWrap" style="margin-top:12px; display:none; align-items:center; gap:12px; background:var(--bg-surface); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+            <img id="bgImagePreview" src="" alt="معاينة الخلفية" style="width:110px; height:62px; object-fit:cover; border-radius:6px; border:1px solid var(--border-color);">
+            <div>
+              <div style="font-size:0.85rem; font-weight:700; color:var(--success);">✅ صورة الخلفية المخصصة نشطة الآن</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">محفوظة دائماً على اللابتوب وتعمل بدون إنترنت</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
 
 
       <div class="content-card">
@@ -1850,8 +1944,12 @@
             ⏳ تأجيل الفاتورة حتى انتهاء الزبون من المبيعات الإضافية
           </button>
 
-          <button class="btn btn-success" onclick="finishSessionPaid()">
-            💵 تم القبض نقداً (إغلاق وحفظ بالصندوق)
+          <button class="btn btn-success" onclick="finishSessionPaid()" style="font-weight:700;">
+            💵 تم القبض نقداً (كاش بالصندوق)
+          </button>
+
+          <button class="btn btn-gold" onclick="openShamCashModalForSession()" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; font-weight:800; border:none; box-shadow:0 3px 12px rgba(16,185,129,0.35);">
+            📱 دفع عبر شام كاش (QR Barcode)
           </button>
           
           <button class="btn btn-secondary" onclick="transferSessionToDebt()">
@@ -2056,6 +2154,7 @@
           <label class="form-label">طريقة المحاسبة:</label>
           <select id="quickSalePaymentType" class="input-field" onchange="onQuickSaleTypeChange()">
             <option value="cash">💵 بيع نقدي كاش (يدخل بالصندوق فوراً)</option>
+            <option value="sham_cash">📱 دفع عبر شام كاش (QR Barcode)</option>
             <option value="session">🎮 إضافة إلى جلسة بلايستيشن جارية</option>
             <option value="debt">📝 تسجيل دين على زبون</option>
           </select>
@@ -2803,7 +2902,7 @@
         time: timeStr,
         title: title,
         amount: amount,
-        unit: unit, type: isGame ? 'service' : 'material',
+        type: type,
         note: note
       });
       persistDailyData();
@@ -2998,7 +3097,11 @@
 
     function calculateSessionBuffetCost(session) {
       if (!session || !session.orders || session.orders.length === 0) return 0;
-      return session.orders.reduce((sum, o) => sum + (o.sellPrice * o.quantity), 0);
+      return session.orders.reduce((sum, o) => {
+        const itemPrice = (o.sellPrice !== undefined ? o.sellPrice : o.price) || 0;
+        const qty = o.quantity || 1;
+        return sum + (itemPrice * qty);
+      }, 0);
     }
 
     function formatTime(seconds) {
@@ -3702,26 +3805,36 @@
     }
 
     function finishSessionPaid() {
-      const deviceId = document.getElementById('endSessionDeviceId').value;
-      const device = devices.find(d => d.id === deviceId);
-      if (!device || !device.session) return;
+      try {
+        const deviceId = document.getElementById('endSessionDeviceId').value;
+        const device = devices.find(d => d.id === deviceId);
+        if (!device || !device.session) {
+          closeModal('endSessionModal');
+          return;
+        }
 
-      const s = device.session;
-      const gameCost = calculateSessionGameCost(s);
-      const buffetCost = calculateSessionBuffetCost(s);
-      const totalCost = gameCost + buffetCost;
+        const s = device.session;
+        const gameCost = Number(calculateSessionGameCost(s)) || 0;
+        const buffetCost = Number(calculateSessionBuffetCost(s)) || 0;
+        const totalCost = gameCost + buffetCost;
 
-      dailyData.gamesCash += gameCost;
-      dailyData.buffetCash += buffetCost;
-      logDailyOperation(`فاتورة (${s.playerName}) - ${device.name}`, totalCost, 'income', `لعب: ${gameCost} + طلبات/أراكيل: ${buffetCost}`);
+        dailyData.gamesCash = (Number(dailyData.gamesCash) || 0) + gameCost;
+        dailyData.buffetCash = (Number(dailyData.buffetCash) || 0) + buffetCost;
+        logDailyOperation(`فاتورة (${s.playerName}) - ${device.name}`, totalCost, 'income', `لعب: ${gameCost} + طلبات: ${buffetCost}`);
 
-      device.session = null;
-      persistDevices();
-      closeModal('endSessionModal');
-      renderDevices();
-      updateTopStats();
-      checkServerDiskSyncOnStartup();
-      showToast(`تم قبض الفاتورة (${totalCost.toLocaleString()} ${settings.currency}) نقداً! 💵`);
+        device.session = null;
+        persistDevices();
+        closeModal('endSessionModal');
+        renderDevices();
+        renderDailyOverview();
+        updateTopStats();
+        scheduleDiskSync();
+        showToast(`تم قبض الفاتورة (${totalCost.toLocaleString()} ${settings.currency}) نقداً وحفظها بالصندوق! 💵`);
+      } catch (err) {
+        console.error('Error in finishSessionPaid:', err);
+        alert('حدث خطأ أثناء قبض الفاتورة: ' + err.message);
+        closeModal('endSessionModal');
+      }
     }
 
     function transferSessionToDebt() {
@@ -3838,6 +3951,7 @@
 
       list.forEach(p => {
         const isGame = p.unit === 'game' || p.type === 'service';
+        const isService = isGame;
         const isKg = p.unit === 'kg';
         const isPiece = !isGame && !isKg;
 
@@ -3983,6 +4097,7 @@
       const icon = document.getElementById('productIconSelect').value;
       const unit = document.getElementById('productUnitModeInput').value || 'piece';
       const isGame = unit === 'game';
+      const isService = isGame;
       const isKg = unit === 'kg';
       
       // سعر الشراء اختياري تماماً
@@ -4115,23 +4230,57 @@
 
     function confirmQuickBuffetSale() {
       const pId = document.getElementById('quickSaleProductSelect').value;
-      const qty = parseInt(document.getElementById('quickSaleQuantityInput').value) || 1;
+      const qty = parseFloat(document.getElementById('quickSaleQuantityInput').value) || 1;
       const payType = document.getElementById('quickSalePaymentType').value;
       const p = products.find(prod => prod.id === pId);
 
-      if (!p || p.stock < qty) {
-        alert('الكمية المطلوبة غير متوفرة بالمخزن.');
+      if (!p) return;
+
+      const isGame = p.unit === 'game' || p.type === 'service';
+      if (!isGame && p.stock < qty) {
+        alert('الكمية أو الوزن المطلوب غير متوفر بالمخزن.');
         return;
       }
 
-      const total = p.sellPrice * qty;
-      p.stock -= qty;
-      persistProducts();
+      const total = Math.round(p.sellPrice * qty);
+
+      if (payType === 'sham_cash') {
+        // فتح نافذة شام كاش مع الباركود والمبلغ
+        openShamCashModal(
+          'دفع شام كاش',
+          `بيع سريع: ${p.name} (${qty} ${p.unit === 'kg' ? 'كغ' : 'قطعة'})`,
+          total,
+          { type: 'quick_sale', productId: p.id, quantity: qty, totalCost: total }
+        );
+        return;
+      }
 
       if (payType === 'cash') {
+        if (!isGame) {
+          if (p.unit === 'kg') p.stock = Math.max(0, +(p.stock - qty).toFixed(2));
+          else p.stock = Math.max(0, p.stock - qty);
+          persistProducts();
+        }
         dailyData.buffetCash += total;
-        logDailyOperation(`بيع بوفيه/أركيلة مباشر (${p.name} ×${qty})`, total, 'income', 'مقبوض كاش');
+        logDailyOperation(`بيع بوفيه مباشر (${p.name} ×${qty})`, total, 'income', 'مقبوض كاش');
         showToast(`تم بيع (${p.name} ×${qty}) وإيداع ${total.toLocaleString()} ${settings.currency} بالصندوق! 💵`);
+      } else if (payType === 'session') {
+        const devId = document.getElementById('quickSaleSessionSelect') ? document.getElementById('quickSaleSessionSelect').value : null;
+        const dev = devices.find(d => d.id === devId);
+        if (!dev || !dev.session) {
+          alert('يرجى اختيار جلسة نشطة.');
+          return;
+        }
+        if (!isGame) {
+          if (p.unit === 'kg') p.stock = Math.max(0, +(p.stock - qty).toFixed(2));
+          else p.stock = Math.max(0, p.stock - qty);
+          persistProducts();
+        }
+        if (!dev.session.orders) dev.session.orders = [];
+        dev.session.orders.push({ productId: p.id, name: p.name, icon: p.icon || '🥤', price: p.sellPrice, sellPrice: p.sellPrice, quantity: qty });
+        persistDevices();
+        renderDevices();
+        showToast(`تمت إضافة (${p.name} ×${qty}) إلى ${dev.name}! 🎮`);
       } else {
         const debtorId = document.getElementById('quickSaleDebtorSelect').value;
         const debtor = debtors.find(d => d.id === debtorId);
@@ -4139,13 +4288,19 @@
           alert('يرجى اختيار زبون لتقييد الدين عليه.');
           return;
         }
+        if (!isGame) {
+          if (p.unit === 'kg') p.stock = Math.max(0, +(p.stock - qty).toFixed(2));
+          else p.stock = Math.max(0, p.stock - qty);
+          persistProducts();
+        }
         const now = new Date();
         const dateStr = now.toLocaleDateString('ar-SY') + ' ' + now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' });
+        if (!debtor.transactions) debtor.transactions = [];
         debtor.transactions.push({
           id: 'tx_' + Date.now(),
           type: 'debt',
           amount: total,
-          note: `طلب بوفيه/أركيلة: ${p.name} ×${qty}`,
+          note: `طلب بوفيه: ${p.name} ×${qty}`,
           date: dateStr,
           timestamp: Date.now()
         });
@@ -4601,6 +4756,9 @@
       document.getElementById('dailyBuffetCash').textContent = `${dailyData.buffetCash.toLocaleString()} ${settings.currency}`;
       document.getElementById('dailyDebtsCollected').textContent = `${dailyData.debtsCollected.toLocaleString()} ${settings.currency}`;
       document.getElementById('dailyExpensesTotal').textContent = `${dailyData.expensesTotal.toLocaleString()} ${settings.currency}`;
+      
+      const shamEl = document.getElementById('dailyShamCashTotal');
+      if (shamEl) shamEl.textContent = `${(dailyData.shamCashTotal || 0).toLocaleString()} ${settings.currency}`;
 
       const netCash = (dailyData.gamesCash + dailyData.buffetCash + dailyData.debtsCollected) - dailyData.expensesTotal;
       document.getElementById('dailyNetCashInDrawer').textContent = `${netCash.toLocaleString()} ${settings.currency}`;
@@ -4969,6 +5127,7 @@
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         `;
       }
+      applyCustomBackground();
     }
 
     function openModal(id) {
@@ -5185,7 +5344,7 @@
       if (!bgLayer) return;
 
       const bgType = settings.bgType || 'default';
-      const bgColor = settings.bgColor || '#0d0f14';
+      const bgColor = settings.bgColor || '';
       const bgImage = settings.bgImage || '';
 
       const picker = document.getElementById('customBgColorPicker');
@@ -5193,26 +5352,32 @@
       const previewWrap = document.getElementById('bgImagePreviewWrap');
       const previewImg = document.getElementById('bgImagePreview');
 
-      if (picker) picker.value = bgColor.startsWith('#') && bgColor.length === 7 ? bgColor : '#0d0f14';
-      if (hexText) hexText.textContent = bgColor;
+      if (picker) picker.value = (bgColor && bgColor.startsWith('#') && bgColor.length === 7) ? bgColor : '#0d0f14';
+      if (hexText) hexText.textContent = bgColor || 'تلقائي';
 
       if (bgType === 'image' && bgImage) {
+        // صورة مخصصة من الجهاز
+        bgLayer.style.display = 'block';
         bgLayer.style.backgroundImage = `url("${bgImage}")`;
         bgLayer.style.backgroundColor = '#0d0f14';
+        document.body.style.backgroundColor = 'transparent';
         if (overlay) overlay.style.display = 'block';
         if (previewWrap) previewWrap.style.display = 'flex';
         if (previewImg) previewImg.src = bgImage;
-      } else if (bgType === 'color') {
+      } else if (bgType === 'color' && bgColor) {
+        // لون مخصص
+        bgLayer.style.display = 'block';
         bgLayer.style.backgroundImage = 'none';
         bgLayer.style.backgroundColor = bgColor;
         document.body.style.backgroundColor = bgColor;
         if (overlay) overlay.style.display = 'none';
         if (previewWrap) previewWrap.style.display = 'none';
       } else {
-        // Default Dark Gold Theme
+        // الوضع الافتراضي التلقائي: يتبع الوضع الفاتح والداكن بانسيابية 100%!
+        bgLayer.style.display = 'none';
         bgLayer.style.backgroundImage = 'none';
-        bgLayer.style.backgroundColor = '#0d0f14';
-        document.body.style.backgroundColor = '#0d0f14';
+        bgLayer.style.backgroundColor = 'transparent';
+        document.body.style.backgroundColor = ''; // إزالة أي inline style لتعمل متغيرات CSS بالكامل
         if (overlay) overlay.style.display = 'none';
         if (previewWrap) previewWrap.style.display = 'none';
       }
@@ -5960,7 +6125,10 @@
           <div style="display:flex; gap:6px;">
             ${!att.isPaid ? `
               <button class="btn btn-success btn-sm flex-1" onclick="payMatchAttendee('${att.id}')" style="font-weight:700;">
-                💵 قبض كاش
+                💵 كاش
+              </button>
+              <button class="btn btn-sm flex-1" onclick="openShamCashModalForMatch('${att.id}')" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; font-weight:700; border:none;" title="دفع إلكتروني عبر شام كاش">
+                📱 شام كاش
               </button>
               <button class="btn btn-secondary btn-sm flex-1" onclick="transferMatchAttendeeToDebt('${att.id}')">
                 📝 دين
@@ -6017,6 +6185,221 @@
         if (thresholdLabel) thresholdLabel.textContent = 'حد تنبيه قرب النفاد (بالقطع):';
       }
     }
+
+
+
+    function goToBackgroundSettings() {
+      const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+      if (navItems[5]) switchTab('tabSettings', navItems[5]);
+      setTimeout(() => {
+        const el = document.getElementById('backgroundCustomizerCard');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+
+
+
+    /* ==========================================================================
+       SHAM CASH ELECTRONIC PAYMENT ENGINE (دفع شام كاش عبر الباركود)
+       ========================================================================== */
+    let shamCashContext = null;
+
+    function openShamCashModal(title, subtitle, amount, context) {
+      shamCashContext = context;
+      document.getElementById('shamCashModalAmountText').textContent = `${amount.toLocaleString()} ${settings.currency}`;
+      document.getElementById('shamCashModalSubtitle').textContent = subtitle || '';
+      
+      const img = document.getElementById('shamCashBarcodeImg');
+      if (img) {
+        img.style.display = 'block';
+        img.src = 'shamcash.png?t=' + Date.now();
+        if (img.parentElement && img.parentElement.querySelector) {
+          const fallback = img.parentElement.querySelector('.sham-fallback');
+          if (fallback) fallback.remove();
+        }
+      }
+
+      openModal('shamCashModal');
+    }
+
+    function closeShamCashModal() {
+      closeModal('shamCashModal');
+      shamCashContext = null;
+    }
+
+    function showShamCashFallback(img) {
+      img.style.display = 'none';
+      const parent = img.parentElement;
+      if (!parent.querySelector('.sham-fallback')) {
+        const fallback = document.createElement('div');
+        fallback.className = 'sham-fallback';
+        fallback.style.cssText = 'color:#0f172a; text-align:center; padding:14px; font-size:0.82rem;';
+        fallback.innerHTML = `
+          <div style="font-size:2.8rem; margin-bottom:6px;">📷</div>
+          <strong style="display:block; color:#059669; font-size:0.95rem; margin-bottom:4px;">ضع صورة الباركود</strong>
+          <span style="color:#64748b; font-size:0.75rem;">ضع ملف الباركود الخاص بك باسم <strong>shamcash.png</strong> داخل مجلد المشروع ليظهر هنا تلقائياً</span>
+        `;
+        parent.appendChild(fallback);
+      }
+    }
+
+    function openShamCashModalForSession() {
+      const deviceId = document.getElementById('endSessionDeviceId').value;
+      const device = devices.find(d => d.id === deviceId);
+      if (!device || !device.session) return;
+
+      const s = device.session;
+      const gameCost = calculateSessionGameCost(s);
+      const buffetCost = calculateSessionBuffetCost(s);
+      const totalCost = gameCost + buffetCost;
+
+      openShamCashModal(
+        'دفع شام كاش',
+        `فاتورة ${device.name} (${s.playerName})`,
+        totalCost,
+        { type: 'session', deviceId: deviceId, gameCost: gameCost, buffetCost: buffetCost, totalCost: totalCost }
+      );
+    }
+
+    function openShamCashModalForMatch(attId) {
+      if (!activeMatch) return;
+      const att = activeMatch.attendees.find(a => a.id === attId);
+      if (!att) return;
+
+      const total = getMatchAttendeeTotal(att);
+      openShamCashModal(
+        'دفع شام كاش للمباراة',
+        `تذكرة مباراة ${activeMatch.title} (${att.name} - ${att.seatsCount} مقاعد)`,
+        total,
+        { type: 'match', attendeeId: attId, totalCost: total }
+      );
+    }
+
+    function confirmShamCashPaymentDone() {
+      try {
+        if (!shamCashContext) {
+          closeShamCashModal();
+          return;
+        }
+
+        const ctx = shamCashContext;
+
+      if (ctx.type === 'session') {
+        const device = devices.find(d => d.id === ctx.deviceId);
+        if (!device || !device.session) {
+          closeShamCashModal();
+          return;
+        }
+
+        const s = device.session;
+        const gameCost = ctx.gameCost;
+        const buffetCost = ctx.buffetCost;
+        const totalCost = ctx.totalCost;
+
+        dailyData.gamesCash += gameCost;
+        dailyData.buffetCash += buffetCost;
+        dailyData.shamCashTotal = (dailyData.shamCashTotal || 0) + totalCost;
+
+        logDailyOperation(
+          `📱 دفع شام كاش: فاتورة (${s.playerName}) - ${device.name}`,
+          totalCost,
+          'income',
+          `شام كاش إلكتروني (لعب: ${gameCost} + طلبات: ${buffetCost})`
+        );
+
+        device.session = null;
+        persistDevices();
+        persistDailyData();
+        closeModal('shamCashModal');
+        closeModal('endSessionModal');
+        renderDevices();
+        renderDailyOverview();
+        updateTopStats();
+        scheduleDiskSync();
+        showToast(`تم تأكيد دفع (${totalCost.toLocaleString()} ${settings.currency}) عبر شام كاش وترحيلها للصندوق بنجاح! 📱✅`);
+      } else if (ctx.type === 'match') {
+        if (!activeMatch) {
+          closeShamCashModal();
+          return;
+        }
+        const att = activeMatch.attendees.find(a => a.id === ctx.attendeeId);
+        if (!att) {
+          closeShamCashModal();
+          return;
+        }
+
+        const total = ctx.totalCost;
+        const ticketsTotal = (att.seatsCount || 1) * (att.ticketPrice || activeMatch.ticketPrice || 10000);
+        const ordersTotal = total - ticketsTotal;
+
+        att.isPaid = true;
+        att.isDebt = false;
+        att.paymentMethod = 'sham_cash';
+        att.paidAt = Date.now();
+
+        dailyData.gamesCash += ticketsTotal;
+        dailyData.buffetCash += ordersTotal;
+        dailyData.shamCashTotal = (dailyData.shamCashTotal || 0) + total;
+
+        logDailyOperation(
+          `📱 دفع شام كاش: مباراة ${activeMatch.title} (${att.name} - ${att.seatsCount} مقاعد)`,
+          total,
+          'income',
+          `شام كاش (تذاكر: ${ticketsTotal} + طلبات: ${ordersTotal})`
+        );
+
+        persistMatches();
+        persistDailyData();
+        closeModal('shamCashModal');
+        renderMatches();
+        renderDailyOverview();
+        updateTopStats();
+        scheduleDiskSync();
+        showToast(`تم تأكيد استلام (${total.toLocaleString()} ${settings.currency}) عبر شام كاش! 📱✅`);
+      } else if (ctx.type === 'quick_sale') {
+        const prod = products.find(p => p.id === ctx.productId);
+        if (!prod) {
+          closeShamCashModal();
+          return;
+        }
+
+        if (prod.type !== 'service' && prod.unit !== 'game') {
+          if (prod.unit === 'kg') {
+            prod.stock = Math.max(0, +(prod.stock - ctx.quantity).toFixed(2));
+          } else {
+            prod.stock = Math.max(0, prod.stock - ctx.quantity);
+          }
+          persistProducts();
+          renderProducts();
+        }
+
+        dailyData.buffetCash += ctx.totalCost;
+        dailyData.shamCashTotal = (dailyData.shamCashTotal || 0) + ctx.totalCost;
+
+        logDailyOperation(
+          `📱 دفع شام كاش: بيع سريع (${prod.name})`,
+          ctx.totalCost,
+          'income',
+          'شام كاش - مبيعات بوفيه'
+        );
+
+        persistDailyData();
+        closeModal('shamCashModal');
+        closeModal('quickBuffetSaleModal');
+        renderDailyOverview();
+        updateTopStats();
+        scheduleDiskSync();
+        showToast(`تم تأكيد بيع (${prod.name}) بمبلغ (${ctx.totalCost.toLocaleString()} ${settings.currency}) عبر شام كاش! 📱✅`);
+      }
+
+      shamCashContext = null;
+      closeShamCashModal();
+    } catch (err) {
+      console.error('Sham cash error:', err);
+      alert('حدث خطأ أثناء تأكيد الدفع: ' + err.message);
+      closeShamCashModal();
+    }
+  }
 
 </script>
   <!-- Keyboard Shortcuts Catalog Modal -->
@@ -6236,6 +6619,52 @@
       </div>
       <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
         <div id="matchArchivesList"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SHAM CASH MODAL (نافذة دفع شام كاش المنبثقة) -->
+  <div id="shamCashModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 420px; width: 92%; text-align: center; padding: 22px 18px; border-radius: 18px; border: 1.5px solid rgba(16, 185, 129, 0.45); box-shadow: 0 12px 35px rgba(0,0,0,0.45);">
+      <!-- Modal Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.5rem;">📱</span>
+          <div style="text-align:right;">
+            <h3 style="margin:0; font-size:1.15rem; color:var(--text-gold);">الدفع عبر شام كاش</h3>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin:0;">مسح رمز QR للتحويل المالي المباشر</p>
+          </div>
+        </div>
+        <button class="btn-icon btn-sm" onclick="closeShamCashModal()">✕</button>
+      </div>
+
+      <!-- Amount Details Card -->
+      <div style="background:var(--bg-surface); border:1px solid rgba(212,175,55,0.35); border-radius:var(--radius-md); padding:10px 14px; margin-bottom:14px;">
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:2px;">المبلغ الإجمالي المطلوب تحويله:</div>
+        <div id="shamCashModalAmountText" style="font-size:1.9rem; font-weight:800; color:var(--text-gold); letter-spacing:0.5px;">
+          0 ل.س
+        </div>
+        <div id="shamCashModalSubtitle" style="font-size:0.8rem; color:var(--text-main); margin-top:3px; font-weight:600;"></div>
+      </div>
+
+      <!-- Centered QR Image Card -->
+      <div style="background:#ffffff; padding:12px; border-radius:14px; border:2px solid #10b981; box-shadow:0 6px 20px rgba(16,185,129,0.2); margin:0 auto 14px; width:260px; height:260px; display:flex; flex-direction:column; justify-content:center; align-items:center; overflow:hidden;">
+        <img id="shamCashBarcodeImg" src="shamcash.png" alt="باركود شام كاش" style="width:100%; height:100%; object-fit:contain; border-radius:8px;" onerror="showShamCashFallback(this)">
+      </div>
+
+      <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:18px; line-height:1.4;">
+        امسح رمز QR أعلاه عبر تطبيق شام كاش، وبعد التأكد من وصول الحوالة اضغط على الزر أدناه لتسجيل الدفع.
+      </p>
+
+      <!-- Action Buttons (تم الدفع تحويل للمبيع + رجوع) -->
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-secondary flex-1" onclick="closeShamCashModal()" style="font-weight:700; padding:10px;">
+          ↩️ رجوع
+        </button>
+        <button type="button" class="btn flex-2" onclick="confirmShamCashPaymentDone()" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color:#ffffff !important; font-weight:800; border:none; box-shadow:0 4px 14px rgba(16,185,129,0.35); padding:11px 16px; font-size:1rem; border-radius:var(--radius-md); cursor:pointer;">
+          <span style="color:#ffffff !important; font-weight:800; font-size:1rem;">✅ تم الدفع (تحويل للمبيع)</span>
+        </button>
       </div>
     </div>
   </div>
